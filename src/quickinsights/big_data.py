@@ -147,12 +147,7 @@ def get_dask_status() -> Dict[str, bool]:
         except ImportError:
             pass
 
-        try:
-            import dask_ml
-
-            status["dask_ml"] = True
-        except ImportError:
-            pass
+        # dask_ml removed - not essential for core functionality
 
         try:
             import distributed
@@ -230,12 +225,7 @@ def get_distributed_status() -> Dict[str, bool]:
     except ImportError:
         pass
 
-    try:
-        import pyspark
-
-        status["spark_available"] = True
-    except ImportError:
-        pass
+    # pyspark removed - not essential for core functionality
 
     try:
         import celery
