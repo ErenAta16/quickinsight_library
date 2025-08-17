@@ -363,7 +363,9 @@ def check_memory_constraints(
         "max_allowed_mb": max_allowed_mb,
         "available_mb": available_memory_mb,
         "safety_margin": safety_margin,
-        "recommendation": "Use chunked processing"
-        if estimated_memory_mb > max_allowed_mb
-        else "Safe to process",
+        "recommendation": (
+            "Use chunked processing"
+            if estimated_memory_mb > max_allowed_mb
+            else "Safe to process"
+        ),
     }

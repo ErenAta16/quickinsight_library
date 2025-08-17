@@ -226,11 +226,13 @@ class AIInsightEngine:
                         "feature2": col2,
                         "pearson": float(pearson_val),
                         "spearman": float(spearman_val),
-                        "strength": "strong"
-                        if abs(pearson_val) > 0.7
-                        else "moderate"
-                        if abs(pearson_val) > 0.3
-                        else "weak",
+                        "strength": (
+                            "strong"
+                            if abs(pearson_val) > 0.7
+                            else "moderate"
+                            if abs(pearson_val) > 0.3
+                            else "weak"
+                        ),
                     }
 
                     if abs(pearson_val) > 0.7:
@@ -371,12 +373,12 @@ class AIInsightEngine:
                 patterns[col] = {
                     "unique_values": int(value_counts.nunique()),
                     "entropy": float(entropy),
-                    "most_common": value_counts.index[0]
-                    if len(value_counts) > 0
-                    else None,
-                    "most_common_count": int(value_counts.iloc[0])
-                    if len(value_counts) > 0
-                    else 0,
+                    "most_common": (
+                        value_counts.index[0] if len(value_counts) > 0 else None
+                    ),
+                    "most_common_count": (
+                        int(value_counts.iloc[0]) if len(value_counts) > 0 else 0
+                    ),
                     "distribution": value_counts.to_dict(),
                 }
 
