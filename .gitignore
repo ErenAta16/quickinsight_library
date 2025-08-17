@@ -129,29 +129,6 @@ dmypy.json
 .pyre/
 
 # QuickInsights specific
-.quickinsights_cache/
 quickinsights_output/
-*.pkl
-*.cache
-
-# IDE specific
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS specific
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
+test_output/
+.benchmarks/
