@@ -1,10 +1,11 @@
 name: QuickInsights CI/CD
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:  # Only manual trigger
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
 
 jobs:
   test:
@@ -76,7 +77,7 @@ jobs:
   build:
     needs: [test, quality]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # if: github.ref == 'refs/heads/main'  # Removed automatic build
     
     steps:
     - uses: actions/checkout@v3
