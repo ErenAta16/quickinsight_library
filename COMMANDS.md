@@ -1,374 +1,304 @@
-# 🚀 QuickInsights Komut Listesi
+# QuickInsights Command Reference
 
-Bu dokümanda QuickInsights kütüphanesinin tüm komutları ve kullanım örnekleri bulunmaktadır.
+This document provides a comprehensive reference for all QuickInsights library commands and usage examples.
 
-## 📊 Temel Analiz Komutları
+## Core Analysis Commands
 
-### **Veri Seti Genel Bilgileri**
+### Data Information
 ```python
 import quickinsights as qi
 import pandas as pd
 
-# Veri seti hakkında genel bilgi
+# Get general information about dataset
 df = pd.read_csv('data.csv')
 info = qi.get_data_info(df)
 
-# Veri seti doğrulama
+# Validate dataframe structure
 is_valid = qi.validate_dataframe(df)
 ```
 
-### **Sayısal Değişken Analizi**
+### Numerical Variable Analysis
 ```python
-# Sayısal değişkenler için detaylı analiz
+# Detailed analysis for numerical variables
 numeric_analysis = qi.analyze_numeric(df)
 
-# İstatistiksel özet
+# Statistical summary
 summary = qi.summary_stats(df)
 
-# Aykırı değer tespiti
+# Outlier detection
 outliers = qi.detect_outliers(df)
 ```
 
-### **Kategorik Değişken Analizi**
+### Categorical Variable Analysis
 ```python
-# Kategorik değişkenler için analiz
+# Analysis for categorical variables
 categorical_analysis = qi.analyze_categorical(df)
 ```
 
-### **Kapsamlı Analiz**
+### Comprehensive Analysis
 ```python
-# Tek komutla tüm analizleri yap
+# Perform all analyses with single command
 results = qi.analyze(df, save_plots=True, output_dir="./output")
 ```
 
-## 🎨 Görselleştirme Komutları
+## Visualization Commands
 
-### **Korelasyon Analizi**
+### Correlation Analysis
 ```python
-# Korelasyon matrisi
+# Correlation matrix
 qi.correlation_matrix(df, method='pearson', save_plots=True)
 
-# İnteraktif korelasyon matrisi
+# Interactive correlation matrix
 qi.create_interactive_plots(df, save_html=True)
 ```
 
-### **Dağılım Grafikleri**
+### Distribution Plots
 ```python
-# Dağılım grafikleri
+# Distribution plots
 qi.distribution_plots(df, save_plots=True)
 
-# Kutu grafikleri
+# Box plots
 qi.box_plots(df, save_plot=True)
 ```
 
-## ⚡ Performans Optimizasyon Komutları
+## Performance Optimization Commands
 
-### **Lazy Evaluation**
+### Lazy Evaluation
 ```python
-# Lazy evaluation ile fonksiyon sarmalama
+# Wrap functions with lazy evaluation
 @qi.lazy_evaluate
 def expensive_function(x):
-    # Pahalı hesaplama
+    # Expensive computation
     return x ** 2
 
-# Fonksiyon sadece çağrıldığında çalışır
+# Function only executes when called
 lazy_result = expensive_function(5)
-result = lazy_result()  # Şimdi çalışır
+result = lazy_result()  # Now executes
 ```
 
-### **Caching (Önbellekleme)**
+### Caching
 ```python
-# Sonuçları cache'leme
-@qi.cache_result(ttl=3600)  # 1 saat
+# Cache results for performance
+@qi.cache_result(ttl=3600)  # 1 hour
 def slow_function(x):
-    # Yavaş hesaplama
+    # Slow computation
     return x ** 3
 
-# İlk çağrı yavaş, sonraki çağrılar hızlı
+# First call slow, subsequent calls fast
 result1 = slow_function(5)
-result2 = slow_function(5)  # Cache'den gelir
+result2 = slow_function(5)  # From cache
 ```
 
-### **Parallel Processing**
+### Parallel Processing
 ```python
-# Paralel işleme
+# Parallel processing for multiple items
 def process_item(x):
     return x ** 2
 
-# 10 öğeyi paralel işle
+# Process 10 items in parallel
 results = qi.parallel_process(process_item, range(10))
 ```
 
-### **Chunked Processing**
-```python
-# Büyük veri setlerini parçalara bölerek işleme
-def process_chunk(chunk):
-    return chunk.sum()
+## Big Data Commands
 
-# 1000'lik parçalar halinde işle
-chunk_results = qi.chunked_process(process_chunk, df, chunk_size=1000)
-```
-
-### **Memory Optimization**
+### Memory Optimization
 ```python
-# Bellek optimizasyonu
+# Optimize memory usage
 optimized_df = qi.memory_optimize(df)
+
+# Check memory constraints
+memory_info = qi.check_memory_constraints(estimated_mb=1000)
 ```
 
-### **Performance Profiling**
+### Chunked Processing
 ```python
-# Performans profili
-def test_function():
-    return sum(range(1000000))
+# Process large datasets in chunks
+def process_chunk(chunk):
+    return chunk.mean()
 
-profile_result = qi.performance_profile(test_function)
+results = qi.process_in_chunks(df, process_chunk, chunk_size=10000)
 ```
 
-### **Benchmarking**
+## Cloud Integration Commands
+
+### AWS S3 Operations
 ```python
-# Fonksiyon benchmark'ı
-benchmark_result = qi.benchmark_function(test_function, test_data, iterations=100)
+# Upload to S3
+qi.upload_to_cloud('data.csv', 'aws', 'bucket/data.csv', bucket_name='my-bucket')
+
+# Download from S3
+data = qi.download_from_cloud('aws', 'bucket/data.csv', bucket_name='my-bucket')
+
+# Process data directly from cloud
+result = qi.process_cloud_data('aws', 'bucket/data.csv', processor_func, bucket_name='my-bucket')
 ```
 
-## 📊 Big Data Komutları
-
-### **Status Kontrolleri**
+### Azure Blob Storage
 ```python
-# Dask durumu
-dask_status = qi.get_dask_status()
+# Upload to Azure
+qi.upload_to_cloud('data.csv', 'azure', 'container/data.csv', container_name='my-container')
 
-# GPU durumu
-gpu_status = qi.get_gpu_status()
-
-# Memory mapping durumu
-memory_mapping_status = qi.get_memory_mapping_status()
-
-# Distributed computing durumu
-distributed_status = qi.get_distributed_status()
+# Download from Azure
+data = qi.download_from_cloud('azure', 'container/data.csv', container_name='my-container')
 ```
 
-### **Memory Management**
+### Google Cloud Storage
 ```python
-# Bellek kullanım tahmini
-memory_info = qi.estimate_memory_usage(df)
+# Upload to GCS
+qi.upload_to_cloud('data.csv', 'gcs', 'bucket/data.csv', bucket_name='my-bucket')
 
-# Sistem bellek bilgisi
-system_memory = qi.get_system_memory_info()
-
-# Bellek kısıtlamaları kontrolü
-constraints = qi.check_memory_constraints(estimated_memory_mb)
+# Download from GCS
+data = qi.download_from_cloud('gcs', 'bucket/data.csv', bucket_name='my-bucket')
 ```
 
-### **Large File Processing**
+## AI-Powered Analysis Commands
+
+### Pattern Discovery
 ```python
-# Büyük dosyaları parçalara bölerek işleme
-for chunk in qi.process_large_file('large_file.csv', chunk_size=10000):
-    processed_chunk = process_chunk(chunk)
-    # İşlenmiş chunk'ı kaydet
+from quickinsights.ai_insights import AIInsightEngine
+
+# Initialize AI engine
+ai_engine = AIInsightEngine(df)
+
+# Get comprehensive insights
+insights = ai_engine.get_insights()
+
+# Discover patterns
+patterns = ai_engine.discover_patterns()
+
+# Predict trends
+trends = ai_engine.predict_trends()
 ```
 
-### **Streaming Data**
+### Feature Importance
 ```python
-# Veri akışı işleme
-for batch in qi.stream_data(df, batch_size=1000):
-    processed_batch = process_batch(batch)
-    # İşlenmiş batch'i kaydet
+# Get feature importance scores
+importance = ai_engine.get_feature_importance()
+
+# Feature selection
+selected_features = ai_engine.select_features(top_k=10)
 ```
 
-## ☁️ Cloud Integration Komutları
+## Real-time Pipeline Commands
 
-### **Status Kontrolleri**
+### Pipeline Setup
 ```python
-# AWS durumu
-aws_status = qi.get_aws_status()
+from quickinsights.realtime_pipeline import RealTimePipeline
 
-# Azure durumu
-azure_status = qi.get_azure_status()
+# Create pipeline
+pipeline = RealTimePipeline("DataProcessing")
 
-# Google Cloud durumu
-gcp_status = qi.get_gcp_status()
+# Add transformations
+pipeline.add_transformation(lambda x: x * 2)
+pipeline.add_filter(lambda x: x > 10)
+
+# Start processing
+pipeline.start()
 ```
 
-### **Cloud Operations**
+### Data Processing
 ```python
-# Dosya yükleme
-upload_result = qi.upload_to_cloud('local_file.csv', 'aws', 'file_key.csv', bucket_name='my-bucket')
+# Process streaming data
+results = pipeline.process_stream(data_stream)
 
-# Dosya indirme
-download_result = qi.download_from_cloud('aws', 'my-bucket', 'file_key.csv')
+# Get pipeline statistics
+stats = pipeline.get_statistics()
 
-# Dosya listesi
-files = qi.list_cloud_files('aws')
-
-# Cloud veri işleme
-def process_cloud_data(data):
-    return data.upper()
-
-result = qi.process_cloud_data('aws', 'my-bucket', process_cloud_data)
+# Stop pipeline
+pipeline.stop()
 ```
 
-## ✅ Data Validation Komutları
+## Data Validation Commands
 
-### **Column Type Validation**
+### Data Quality Checks
 ```python
-# Sütun tipi doğrulama
-expected_types = {
-    'age': 'numeric',
-    'name': 'object',
-    'salary': 'numeric'
-}
-validation_result = qi.validate_column_types(df, expected_types)
+# Validate data types
+type_validation = qi.validate_data_types(df)
+
+# Check for missing values
+missing_analysis = qi.analyze_missing_values(df)
+
+# Validate data ranges
+range_validation = qi.validate_data_ranges(df)
 ```
 
-### **Data Quality Check**
+### Data Cleaning
 ```python
-# Veri kalitesi kontrolü
-quality_report = qi.check_data_quality(df)
+# Remove duplicates
+clean_df = qi.remove_duplicates(df)
+
+# Fill missing values
+filled_df = qi.fill_missing_values(df, strategy='mean')
+
+# Handle outliers
+cleaned_df = qi.handle_outliers(df, method='iqr')
 ```
 
-### **Data Cleaning**
+## Utility Commands
+
+### System Information
 ```python
-# Veri temizleme
-cleaned_df = qi.clean_data(df)
-```
-
-### **Schema Validation**
-```python
-# Şema doğrulama
-schema = {
-    'age': {'type': 'numeric', 'required': True},
-    'name': {'type': 'object', 'required': True}
-}
-schema_validation = qi.validate_schema(df, schema)
-```
-
-### **Anomaly Detection**
-```python
-# Anomali tespiti
-anomalies = qi.detect_anomalies(df)
-```
-
-### **Format Validation**
-```python
-# Email format doğrulama
-email_valid = qi.validate_email_format('test@example.com')
-
-# Telefon format doğrulama
-phone_valid = qi.validate_phone_format('+90-555-123-4567')
-
-# Tarih format doğrulama
-date_valid = qi.validate_date_format('2024-01-15')
-```
-
-## 🔧 Utility Komutları
-
-### **Status ve Bilgi**
-```python
-# Tüm utility durumları
-utility_status = qi.get_utility_status()
-
-# Durumları yazdır
-qi.print_utility_status()
-
-# Mevcut özellikler
-features = qi.get_available_features()
-
-# Bağımlılık kontrolü
-dependencies = qi.check_dependencies()
-
-# Sistem bilgisi
+# Get system capabilities
 system_info = qi.get_system_info()
 
-# Utility raporu
-report = qi.create_utility_report()
+# Check dependencies
+dependencies = qi.check_dependencies()
+
+# Get available features
+features = qi.get_available_features()
 ```
 
-### **Lazy Loading**
+### Performance Monitoring
 ```python
-# Performance utilities
-performance_utils = qi.get_performance_utils()
+# Monitor execution time
+@qi.measure_time
+def slow_function():
+    # Function to monitor
+    pass
 
-# Big data utilities
-big_data_utils = qi.get_big_data_utils()
-
-# GPU utilities
-gpu_utils = qi.get_gpu_utils()
-
-# Cloud utilities
-cloud_utils = qi.get_cloud_utils()
-
-# Validation utilities
-validation_utils = qi.get_validation_utils()
-
-# Tüm utilities
-all_utils = qi.get_all_utils()
+# Get performance metrics
+metrics = qi.get_performance_metrics()
 ```
 
-## 🎯 Kullanım Senaryoları
+## Advanced Usage Examples
 
-### **Hızlı Veri Keşfi**
+### Custom Analysis Pipeline
 ```python
-import quickinsights as qi
-import pandas as pd
+# Create custom analysis workflow
+def custom_analysis(df):
+    # Data validation
+    if not qi.validate_dataframe(df):
+        raise ValueError("Invalid dataframe")
+    
+    # Memory optimization
+    df_opt = qi.memory_optimize(df)
+    
+    # Comprehensive analysis
+    results = qi.analyze(df_opt, save_plots=True)
+    
+    # AI insights
+    ai_engine = AIInsightEngine(df_opt)
+    insights = ai_engine.get_insights()
+    
+    return results, insights
 
-# Veri setini yükle
-df = pd.read_csv('data.csv')
-
-# Tek komutla kapsamlı analiz
-qi.analyze(df, save_plots=True, show_plots=False)
+# Execute custom analysis
+results, insights = custom_analysis(df)
 ```
 
-### **Performans Optimizasyonu**
+### Batch Processing
 ```python
-# Büyük veri seti için optimizasyon
-@qi.lazy_evaluate
-@qi.cache_result(ttl=3600)
-def expensive_analysis(df):
-    return df.groupby('category').agg(['mean', 'std', 'count'])
+# Process multiple files
+files = ['data1.csv', 'data2.csv', 'data3.csv']
+results = []
 
-# Analiz sadece gerektiğinde yapılır ve sonuçlar cache'lenir
-lazy_analysis = expensive_analysis(large_df)
+for file in files:
+    df = pd.read_csv(file)
+    result = qi.analyze(df, save_plots=True, output_dir=f"./output/{file}")
+    results.append(result)
+
+# Combine results
+combined_results = qi.combine_analysis_results(results)
 ```
 
-### **Cloud Data Processing**
-```python
-# Cloud'dan veri indir ve işle
-def process_data(data):
-    # Veri işleme mantığı
-    return processed_data
-
-result = qi.process_cloud_data('aws', 'data-bucket', process_data)
-```
-
-### **Real-time Data Validation**
-```python
-# Gerçek zamanlı veri doğrulama
-def validate_stream_data(data):
-    if qi.validate_dataframe(data):
-        quality_report = qi.check_data_quality(data)
-        if quality_report['overall_score'] > 0.8:
-            return True
-    return False
-```
-
-## 📚 Komut Referansı
-
-### **Fonksiyon Kategorileri**
-- **Core Analysis**: `analyze`, `get_data_info`, `analyze_numeric`, `analyze_categorical`
-- **Visualization**: `correlation_matrix`, `distribution_plots`, `box_plots`, `create_interactive_plots`
-- **Performance**: `lazy_evaluate`, `cache_result`, `parallel_process`, `chunked_process`
-- **Big Data**: `process_large_file`, `stream_data`, `estimate_memory_usage`
-- **Cloud**: `upload_to_cloud`, `download_from_cloud`, `list_cloud_files`
-- **Validation**: `validate_dataframe`, `check_data_quality`, `clean_data`
-- **Utilities**: `get_utility_status`, `check_dependencies`, `get_system_info`
-
-### **Parametreler**
-- **save_plots**: Grafikleri kaydet (True/False)
-- **show_plots**: Grafikleri göster (True/False)
-- **output_dir**: Çıktı dizini
-- **chunk_size**: Parça boyutu
-- **max_workers**: Maksimum worker sayısı
-- **ttl**: Cache süresi (saniye)
-- **iterations**: Benchmark iterasyon sayısı
-
-Bu komut listesi QuickInsights kütüphanesinin tüm özelliklerini kapsamaktadır. Her komut için detaylı dokümantasyon ve örnekler kullanıcıların hızlıca başlamasına yardımcı olur.
+This command reference covers the essential functionality of QuickInsights. For detailed API documentation, see the individual module documentation files.

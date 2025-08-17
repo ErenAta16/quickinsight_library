@@ -1,31 +1,31 @@
 # QuickInsights API Reference
 
-## 📚 Genel Bakış
+## Overview
 
-QuickInsights, büyük veri setleri için yaratıcı ve yenilikçi analiz araçları sağlayan Python kütüphanesidir.
+QuickInsights is a Python library that provides creative and innovative analysis tools for large datasets.
 
-## 🔧 Kurulum
+## Installation
 
 ```bash
 pip install quickinsights
 ```
 
-## 📊 Ana Fonksiyonlar
+## Core Functions
 
 ### `analyze(df, show_plots=True, save_plots=False, output_dir="./quickinsights_output")`
 
-Veri seti üzerinde kapsamlı analiz yapar.
+Performs comprehensive analysis on the dataset.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Analiz edilecek veri seti
-- `show_plots` (bool): Grafikleri göstermek isteyip istemediğiniz
-- `save_plots` (bool): Grafikleri kaydetmek isteyip istemediğiniz
-- `output_dir` (str): Grafiklerin kaydedileceği dizin
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to analyze
+- `show_plots` (bool): Whether to display plots
+- `save_plots` (bool): Whether to save plots
+- `output_dir` (str): Directory to save plots
 
-**Dönen Değer:**
-- `dict`: Analiz sonuçları
+**Returns:**
+- `dict`: Analysis results
 
-**Örnek:**
+**Example:**
 ```python
 import quickinsights as qi
 import pandas as pd
@@ -36,257 +36,267 @@ results = qi.analyze(df, save_plots=True)
 
 ### `analyze_numeric(df, show_plots=True, save_plots=False, output_dir="./quickinsights_output")`
 
-Sayısal değişkenler üzerinde detaylı analiz yapar.
+Performs detailed analysis on numerical variables.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Sadece sayısal değişkenler içeren veri seti
-- `show_plots` (bool): Grafikleri göstermek isteyip istemediğiniz
-- `save_plots` (bool): Grafikleri kaydetmek isteyip istemediğiniz
-- `output_dir` (str): Grafiklerin kaydedileceği dizin
+**Parameters:**
+- `df` (pd.DataFrame): Dataset containing only numerical variables
+- `show_plots` (bool): Whether to display plots
+- `save_plots` (bool): Whether to save plots
+- `output_dir` (str): Directory to save plots
 
-**Dönen Değer:**
-- `dict`: Sayısal analiz sonuçları
+**Returns:**
+- `dict`: Numerical analysis results
 
 ### `analyze_categorical(df, show_plots=True, save_plots=False, output_dir="./quickinsights_output")`
 
-Kategorik değişkenler üzerinde detaylı analiz yapar.
+Performs detailed analysis on categorical variables.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Sadece kategorik değişkenler içeren veri seti
-- `show_plots` (bool): Grafikleri göstermek isteyip istemediğiniz
-- `save_plots` (bool): Grafikleri kaydetmek isteyip istemediğiniz
-- `output_dir` (str): Grafiklerin kaydedileceği dizin
+**Parameters:**
+- `df` (pd.DataFrame): Dataset containing only categorical variables
+- `show_plots` (bool): Whether to display plots
+- `save_plots` (bool): Whether to save plots
+- `output_dir` (str): Directory to save plots
 
-**Dönen Değer:**
-- `dict`: Kategorik analiz sonuçları
+**Returns:**
+- `dict`: Categorical analysis results
 
-## 🎨 Görselleştirme Fonksiyonları
+## Visualization Functions
 
 ### `correlation_matrix(df, method='pearson', save_plots=False, output_dir="./quickinsights_output")`
 
-Sayısal değişkenler arası korelasyon matrisini görselleştirir.
+Visualizes correlation matrix between numerical variables.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Sadece sayısal değişkenler içeren veri seti
-- `method` (str): Korelasyon hesaplama yöntemi ('pearson', 'spearman')
-- `save_plots` (bool): Grafiği kaydetmek isteyip istemediğiniz
-- `output_dir` (str): Grafiğin kaydedileceği dizin
+**Parameters:**
+- `df` (pd.DataFrame): Dataset containing only numerical variables
+- `method` (str): Correlation calculation method ('pearson', 'spearman')
+- `save_plots` (bool): Whether to save the plot
+- `output_dir` (str): Directory to save the plot
 
 ### `distribution_plots(df, save_plots=False, output_dir="./quickinsights_output")`
 
-Sayısal değişkenlerin dağılım grafiklerini oluşturur.
+Creates distribution plots for numerical variables.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Sadece sayısal değişkenler içeren veri seti
-- `save_plots` (bool): Grafikleri kaydetmek isteyip istemediğiniz
-- `output_dir` (str): Grafiklerin kaydedileceği dizin
+**Parameters:**
+- `df` (pd.DataFrame): Dataset containing only numerical variables
+- `save_plots` (bool): Whether to save plots
+- `output_dir` (str): Directory to save plots
 
 ### `summary_stats(df)`
 
-Veri setinin istatistiksel özetini hesaplar.
+Calculates statistical summary of the dataset.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Analiz edilecek veri seti
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to analyze
 
-**Dönen Değer:**
-- `dict`: İstatistiksel özet
+**Returns:**
+- `dict`: Statistical summary
 
-## 🛠️ Yardımcı Fonksiyonlar
+## Utility Functions
 
 ### `get_data_info(df)`
 
-Veri seti hakkında genel bilgi verir.
+Provides general information about the dataset.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Analiz edilecek veri seti
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to analyze
 
-**Dönen Değer:**
-- `dict`: Veri seti bilgileri
+**Returns:**
+- `dict`: Dataset information
 
-### `detect_outliers(df)`
+### `detect_outliers(df, method='iqr', threshold=1.5)`
 
-Veri setindeki aykırı değerleri tespit eder.
+Detects outliers in numerical variables.
 
-**Parametreler:**
-- `df` (pd.DataFrame): Analiz edilecek veri seti
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to analyze
+- `method` (str): Outlier detection method ('iqr', 'zscore')
+- `threshold` (float): Threshold for outlier detection
 
-**Dönen Değer:**
-- `pd.DataFrame`: Aykırı değer matrisi (boolean)
-
-### `optimize_dtypes(df)`
-
-Veri tiplerini optimize ederek bellek kullanımını azaltır.
-
-**Parametreler:**
-- `df` (pd.DataFrame): Optimize edilecek veri seti
-
-**Dönen Değer:**
-- `pd.DataFrame`: Optimize edilmiş veri seti
+**Returns:**
+- `dict`: Outlier information
 
 ### `validate_dataframe(df)`
 
-DataFrame'in geçerli olup olmadığını kontrol eder.
+Validates dataframe structure and content.
 
-**Parametreler:**
-- `df`: Kontrol edilecek veri
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to validate
 
-**Dönen Değer:**
-- `bool`: DataFrame geçerliyse True, değilse False
+**Returns:**
+- `bool`: Validation result
 
-**Hatalar:**
-- `TypeError`: Veri bir DataFrame değilse
-- `ValueError`: DataFrame boşsa
+## Performance Optimization Functions
 
-## 🚀 Performans Sınıfları
+### `lazy_evaluate(func)`
 
-### `LazyAnalyzer(df)`
+Decorator for lazy evaluation of functions.
 
-Lazy evaluation ile veri analizi yapar.
+**Parameters:**
+- `func`: Function to wrap
 
-**Parametreler:**
-- `df` (pd.DataFrame): Analiz edilecek veri seti
+**Returns:**
+- Wrapped function that executes only when called
 
-**Metodlar:**
-- `get_data_info()`: Veri seti bilgilerini döndürür
-- `get_numeric_analysis()`: Sayısal analiz yapar
-- `get_categorical_analysis()`: Kategorik analiz yapar
-- `get_all_analysis()`: Tüm analizleri yapar
-
-**Örnek:**
+**Example:**
 ```python
-lazy_analyzer = qi.LazyAnalyzer(df)
-data_info = lazy_analyzer.get_data_info()
-numeric_analysis = lazy_analyzer.get_numeric_analysis()
+@qi.lazy_evaluate
+def expensive_function(x):
+    return x ** 2
+
+lazy_result = expensive_function(5)
+result = lazy_result()  # Now executes
 ```
 
-## 🔄 Paralel İşleme
+### `cache_result(ttl=3600)`
 
-### `parallel_analysis(df, backend='thread', n_jobs=-1)`
+Decorator for caching function results.
 
-Paralel olarak veri analizi yapar.
+**Parameters:**
+- `ttl` (int): Time to live in seconds
 
-**Parametreler:**
-- `df` (pd.DataFrame): Analiz edilecek veri seti
-- `backend` (str): Paralel işleme backend'i ('thread', 'process')
-- `n_jobs` (int): Kullanılacak iş parçacığı sayısı (-1 = tüm CPU'lar)
+**Returns:**
+- Decorated function with caching
 
-**Dönen Değer:**
-- `dict`: Paralel analiz sonuçları
+**Example:**
+```python
+@qi.cache_result(ttl=3600)
+def slow_function(x):
+    return x ** 3
 
-### `chunked_analysis(df, chunk_size=10000, n_jobs=-1)`
+result1 = slow_function(5)  # Slow
+result2 = slow_function(5)  # Fast (from cache)
+```
 
-Büyük veri setlerini chunk'lara bölerek analiz eder.
+### `parallel_process(func, data, max_workers=None)`
 
-**Parametreler:**
-- `df` (pd.DataFrame): Analiz edilecek veri seti
-- `chunk_size` (int): Her chunk'taki satır sayısı
-- `n_jobs` (int): Kullanılacak iş parçacığı sayısı
+Processes data in parallel using multiple workers.
 
-**Dönen Değer:**
-- `dict`: Chunked analiz sonuçları
+**Parameters:**
+- `func`: Function to apply to each item
+- `data`: Data to process
+- `max_workers` (int): Maximum number of workers
 
-## 🎨 Yaratıcı Görselleştirme
+**Returns:**
+- `list`: Processed results
 
-### `CreativeVizEngine(df)`
+## Big Data Functions
 
-Yaratıcı görselleştirmeler oluşturur.
+### `memory_optimize(df)`
 
-**Metodlar:**
-- `create_radar_chart(numeric_cols, title)`: Radar chart
-- `create_3d_scatter(x_col, y_col, z_col)`: 3D scatter plot
-- `create_interactive_network(source_col, target_col)`: Network graph
-- `create_animated_timeline(time_col, value_col)`: Animasyonlu timeline
-- `create_sunburst_chart(path_cols, value_col)`: Sunburst chart
+Optimizes memory usage of the dataframe.
 
-## 🧠 AI Destekli Analiz
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to optimize
+
+**Returns:**
+- `pd.DataFrame`: Memory-optimized dataset
+
+### `process_in_chunks(df, func, chunk_size=10000)`
+
+Processes large datasets in chunks.
+
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to process
+- `func`: Function to apply to each chunk
+- `chunk_size` (int): Size of each chunk
+
+**Returns:**
+- `list`: Results from processing chunks
+
+## Cloud Integration Functions
+
+### `upload_to_cloud(file_path, provider, remote_path, **kwargs)`
+
+Uploads files to cloud storage.
+
+**Parameters:**
+- `file_path` (str): Local file path
+- `provider` (str): Cloud provider ('aws', 'azure', 'gcs')
+- `remote_path` (str): Remote file path
+- `**kwargs`: Provider-specific parameters
+
+**Returns:**
+- `bool`: Upload success status
+
+### `download_from_cloud(provider, remote_path, **kwargs)`
+
+Downloads files from cloud storage.
+
+**Parameters:**
+- `provider` (str): Cloud provider ('aws', 'azure', 'gcs')
+- `remote_path` (str): Remote file path
+- `**kwargs`: Provider-specific parameters
+
+**Returns:**
+- Downloaded data or file path
+
+## AI-Powered Analysis Functions
 
 ### `AIInsightEngine(df)`
 
-AI destekli veri insights sağlar.
+AI-powered analysis engine for discovering patterns and insights.
 
-**Metodlar:**
-- `discover_patterns(max_patterns=10)`: Otomatik pattern discovery
-- `detect_anomalies(method='auto')`: Anomali tespiti
-- `predict_trends(target_col, horizon=5)`: Trend tahmini
-- `generate_insights_report()`: Kapsamlı insights raporu
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to analyze
 
-## ⚡ Gerçek Zamanlı Analiz
+**Methods:**
+- `get_insights()`: Returns comprehensive insights
+- `discover_patterns()`: Discovers data patterns
+- `predict_trends()`: Predicts future trends
+- `get_feature_importance()`: Calculates feature importance
+
+## Real-time Pipeline Functions
 
 ### `RealTimePipeline(name)`
 
-Gerçek zamanlı veri işleme pipeline'ı.
+Real-time data processing pipeline.
 
-**Metodlar:**
-- `add_transformation(transformation)`: Dönüşüm ekler
-- `add_outlier_detector(method, threshold)`: Outlier detector ekler
-- `add_anomaly_detector(window_size, threshold)`: Anomaly detector ekler
-- `start()`: Pipeline'ı başlatır
-- `stop()`: Pipeline'ı durdurur
-- `process_data(data)`: Veriyi işler
+**Parameters:**
+- `name` (str): Pipeline name
 
-## 📊 Performans Benchmark'ları
+**Methods:**
+- `add_transformation(func)`: Adds data transformation
+- `add_filter(func)`: Adds data filter
+- `start()`: Starts the pipeline
+- `stop()`: Stops the pipeline
+- `process_stream(data_stream)`: Processes streaming data
 
-### `get_performance_utils()`
+## Data Validation Functions
 
-Performans utilities için lazy import.
+### `validate_data_types(df, expected_types)`
 
-**Dönen Değer:**
-- `dict`: Performans utility fonksiyonları
+Validates data types of dataframe columns.
 
-### `get_big_data_utils()`
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to validate
+- `expected_types` (dict): Expected column types
 
-Big data utilities için lazy import.
+**Returns:**
+- `dict`: Validation results
 
-**Dönen Değer:**
-- `dict`: Big data utility fonksiyonları
+### `check_data_quality(df)`
 
-### `get_gpu_utils()`
+Checks overall data quality.
 
-GPU utilities için lazy import.
+**Parameters:**
+- `df` (pd.DataFrame): Dataset to check
 
-**Dönen Değer:**
-- `dict`: GPU utility fonksiyonları
+**Returns:**
+- `dict`: Quality metrics
 
-### `get_cloud_utils()`
+## Error Handling
 
-Cloud utilities için lazy import.
+All functions include proper error handling and will raise appropriate exceptions for invalid inputs or processing errors.
 
-**Dönen Değer:**
-- `dict`: Cloud utility fonksiyonları
+## Performance Notes
 
-## 🔧 Konfigürasyon
+- Use lazy evaluation for expensive computations
+- Apply caching for frequently called functions
+- Use parallel processing for large datasets
+- Consider memory optimization for big data operations
 
-### Çıktı Dizini
-Varsayılan çıktı dizini: `./quickinsights_output`
+## Examples
 
-### Grafik Formatları
-- PNG: Yüksek kalite, düşük boyut
-- HTML: İnteraktif Plotly grafikleri
+For complete usage examples, see the examples directory and the main README file.
 
-### Bellek Optimizasyonu
-- Otomatik veri tipi optimizasyonu
-- Lazy evaluation
-- Chunked processing
-
-## 📝 Örnekler
-
-Daha fazla örnek için `examples/` dizinini inceleyin:
-- `basic_usage.py`: Temel kullanım örnekleri
-- `performance_benchmarks.py`: Performans benchmark'ları
-- `big_data_analysis.py`: Büyük veri analizi örnekleri
-
-## 🐛 Hata Yönetimi
-
-Kütüphane, hataları graceful bir şekilde yönetir:
-- Eksik bağımlılıklar için uyarılar
-- Geçersiz veri tipleri için TypeError
-- Boş veri setleri için ValueError
-- Dosya yazma hataları için IOError
-
-## 📈 Performans İpuçları
-
-1. **Lazy Evaluation**: Sadece gerektiğinde analiz yapın
-2. **Chunked Processing**: Büyük veri setleri için chunk'ları kullanın
-3. **Parallel Processing**: Çoklu CPU çekirdeklerini kullanın
-4. **Memory Optimization**: Veri tiplerini optimize edin
-5. **GPU Acceleration**: Uygun olduğunda GPU kullanın
+This API reference covers the core functionality of QuickInsights. For advanced usage patterns and best practices, refer to the documentation and examples.
