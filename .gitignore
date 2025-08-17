@@ -132,3 +132,6 @@ dmypy.json
 quickinsights_output/
 test_output/
 .benchmarks/
+
+# PyPI configuration (contains API tokens)
+.pypirc

@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="quickinsights",
-    version="0.1.0",
+    version="0.1.1",
     author="Eren Ata",
     author_email="erena6466@gmail.com",
-    description="Tek komutla veri seti analizi yapan Python kütüphanesi",
+    description="A creative and innovative Python library for data analysis with single command",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/erena6466/quickinsights",
