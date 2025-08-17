@@ -1,32 +1,36 @@
-# 🚀 QuickInsights
+# QuickInsights
 
 A creative and innovative Python library for data analysis that goes beyond basic libraries like NumPy and Pandas. Provides advanced features for big data analysis with a single command.
 
-## ✨ Features
+## What is it?
 
-- 🔍 **Comprehensive Data Analysis**: Single-command data set analysis
-- 📊 **Advanced Visualization**: Matplotlib, Seaborn and Plotly integration
-- 🚀 **Performance Optimization**: Lazy evaluation, caching, parallel processing
-- ☁️ **Cloud Integration**: AWS S3, Azure Blob, Google Cloud Storage
-- 🤖 **AI-Powered Insights**: Automatic pattern detection and trend analysis
-- 📈 **Real-time Pipeline**: Streaming data processing
-- 🔧 **Modular Architecture**: Easily extensible and customizable
+QuickInsights is a Python package that provides comprehensive data analysis capabilities through an intuitive interface. It aims to be a powerful tool for data scientists, analysts, and researchers who need to perform complex data analysis tasks efficiently.
 
-## 🚀 Installation
+## Main Features
 
-### **Install from Main PyPI (Recommended):**
+- **Comprehensive Data Analysis**: Single-command data set analysis with detailed insights
+- **Advanced Visualization**: Integration with Matplotlib, Seaborn and Plotly for professional charts
+- **Performance Optimization**: Lazy evaluation, caching, parallel processing for large datasets
+- **Cloud Integration**: Support for AWS S3, Azure Blob, Google Cloud Storage
+- **AI-Powered Insights**: Automatic pattern detection and trend analysis using machine learning
+- **Real-time Pipeline**: Streaming data processing capabilities
+- **Modular Architecture**: Easily extensible and customizable framework
+
+## Installation
+
+### From PyPI (Recommended)
 
 ```bash
 pip install quickinsights
 ```
 
-### **Install from Test PyPI (Developer Version):**
+### From Test PyPI (Developer Version)
 
 ```bash
 pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ quickinsights
 ```
 
-### **Developer Installation:**
+### From Source
 
 ```bash
 git clone https://github.com/erena6466/quickinsights.git
@@ -34,7 +38,7 @@ cd quickinsights
 pip install -e .
 ```
 
-## 📖 Quick Start
+## Quick Start
 
 ```python
 import quickinsights as qi
@@ -60,9 +64,10 @@ outliers = qi.detect_outliers(df)
 optimized_df = qi.memory_optimize(df)
 ```
 
-## 🔧 Advanced Usage
+## Advanced Usage
 
-### **AI-Powered Analysis:**
+### AI-Powered Analysis
+
 ```python
 from quickinsights.ai_insights import AIInsightEngine
 
@@ -71,7 +76,8 @@ insights = ai_engine.get_insights()
 trends = ai_engine.predict_trends()
 ```
 
-### **Cloud Integration:**
+### Cloud Integration
+
 ```python
 # Upload to AWS S3
 qi.upload_to_cloud('data.csv', 'aws', 'my-bucket/data.csv', bucket_name='my-bucket')
@@ -80,7 +86,8 @@ qi.upload_to_cloud('data.csv', 'aws', 'my-bucket/data.csv', bucket_name='my-buck
 result = qi.process_cloud_data('aws', 'my-bucket/data.csv', processor_func, bucket_name='my-bucket')
 ```
 
-### **Real-time Pipeline:**
+### Real-time Pipeline
+
 ```python
 from quickinsights.realtime_pipeline import RealTimePipeline
 
@@ -90,45 +97,49 @@ pipeline.add_filter(lambda x: x > 10)
 results = pipeline.process_stream(data_stream)
 ```
 
-## 📚 Documentation
+## Dependencies
+
+- **Core**: pandas>=1.3.0, numpy>=1.20.0, matplotlib>=3.3.0
+- **Visualization**: seaborn>=0.11.0, plotly>=5.0.0
+- **Scientific**: scipy>=1.7.0
+- **Optional**: numba, dask, cupy, boto3, azure-storage-blob, google-cloud-storage
+
+## Documentation
 
 For detailed API documentation, see [docs/api.md](docs/api.md).
 
 For command list, see [COMMANDS.md](COMMANDS.md).
 
-## 🤝 Contributing
+## Contributing
 
 To contribute, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
-## 🆘 Support
+## Support
 
 - **GitHub Issues**: [https://github.com/erena6466/quickinsights/issues](https://github.com/erena6466/quickinsights/issues)
 - **Documentation**: [docs/](docs/) folder
 - **Examples**: [examples/](examples/) folder
 
-## 🎯 Project Status
+## Project Status
 
-- ✅ **Core Library**: Completed
-- ✅ **Modular Architecture**: Completed
-- ✅ **Test Suite**: 100% success rate
-- ✅ **Test PyPI**: Successfully uploaded
-- ✅ **Main PyPI**: Main PyPI upload successful
-- 🔄 **CI/CD**: Automated testing with GitHub Actions
-- 📚 **Documentation**: Comprehensive documentation
+- **Core Library**: Completed
+- **Modular Architecture**: Completed
+- **Test Suite**: 100% success rate
+- **PyPI Release**: Version 0.1.1 available
+- **Documentation**: Comprehensive documentation
 
-## 🚀 Future Plans
+## Future Plans
 
-- [ ] Main PyPI upload
-- [ ] ReadTheDocs integration
-- [ ] Community building
+- [ ] Enhanced ML algorithms
+- [ ] Web dashboard interface
 - [ ] Performance benchmarks
-- [ ] Additional ML algorithms
-- [ ] Web dashboard
+- [ ] Community building
+- [ ] Additional data sources
 
 ---
 
-**QuickInsights** - Simplifying data analysis and enhancing performance with Python! 🚀📊
+**QuickInsights** - Simplifying data analysis and enhancing performance with Python 🚀
