@@ -1,32 +1,32 @@
 # 🚀 QuickInsights
 
-Tek komutla veri seti analizi yapan, kreatif ve yenilikçi Python kütüphanesi. NumPy ve Pandas gibi temel kütüphanelerin ötesine geçerek, büyük veri analizi için gelişmiş özellikler sunar.
+A creative and innovative Python library for data analysis that goes beyond basic libraries like NumPy and Pandas. Provides advanced features for big data analysis with a single command.
 
-## ✨ Özellikler
+## ✨ Features
 
-- 🔍 **Kapsamlı Veri Analizi**: Tek komutla veri seti analizi
-- 📊 **Gelişmiş Görselleştirme**: Matplotlib, Seaborn ve Plotly entegrasyonu
-- 🚀 **Performans Optimizasyonu**: Lazy evaluation, caching, parallel processing
-- ☁️ **Cloud Entegrasyonu**: AWS S3, Azure Blob, Google Cloud Storage
-- 🤖 **AI Destekli İçgörüler**: Otomatik pattern detection ve trend analizi
+- 🔍 **Comprehensive Data Analysis**: Single-command data set analysis
+- 📊 **Advanced Visualization**: Matplotlib, Seaborn and Plotly integration
+- 🚀 **Performance Optimization**: Lazy evaluation, caching, parallel processing
+- ☁️ **Cloud Integration**: AWS S3, Azure Blob, Google Cloud Storage
+- 🤖 **AI-Powered Insights**: Automatic pattern detection and trend analysis
 - 📈 **Real-time Pipeline**: Streaming data processing
-- 🔧 **Modüler Yapı**: Kolay genişletilebilir ve özelleştirilebilir
+- 🔧 **Modular Architecture**: Easily extensible and customizable
 
-## 🚀 Kurulum
+## 🚀 Installation
 
-### **Ana PyPI'den Kurulum (Önerilen):**
+### **Install from Main PyPI (Recommended):**
 
 ```bash
 pip install quickinsights
 ```
 
-### **Test PyPI'den Kurulum (Geliştirici Versiyonu):**
+### **Install from Test PyPI (Developer Version):**
 
 ```bash
 pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ quickinsights
 ```
 
-### **Geliştirici Kurulumu:**
+### **Developer Installation:**
 
 ```bash
 git clone https://github.com/erena6466/quickinsights.git
@@ -34,35 +34,35 @@ cd quickinsights
 pip install -e .
 ```
 
-## 📖 Hızlı Başlangıç
+## 📖 Quick Start
 
 ```python
 import quickinsights as qi
 import pandas as pd
 
-# Örnek veri seti
+# Sample dataset
 df = pd.DataFrame({
     'A': [1, 2, 3, 4, 5],
     'B': [4, 5, 6, 7, 8],
     'C': ['a', 'b', 'a', 'b', 'a']
 })
 
-# Tek komutla kapsamlı analiz
+# Comprehensive analysis with single command
 result = qi.analyze(df, show_plots=True, save_plots=True)
 
-# Veri seti bilgileri
+# Dataset information
 info = qi.get_data_info(df)
 
-# Aykırı değer tespiti
+# Outlier detection
 outliers = qi.detect_outliers(df)
 
-# Performans optimizasyonu
+# Performance optimization
 optimized_df = qi.memory_optimize(df)
 ```
 
-## 🔧 Gelişmiş Kullanım
+## 🔧 Advanced Usage
 
-### **AI Destekli Analiz:**
+### **AI-Powered Analysis:**
 ```python
 from quickinsights.ai_insights import AIInsightEngine
 
@@ -71,12 +71,12 @@ insights = ai_engine.get_insights()
 trends = ai_engine.predict_trends()
 ```
 
-### **Cloud Entegrasyonu:**
+### **Cloud Integration:**
 ```python
-# AWS S3'e yükleme
+# Upload to AWS S3
 qi.upload_to_cloud('data.csv', 'aws', 'my-bucket/data.csv', bucket_name='my-bucket')
 
-# Cloud'dan veri işleme
+# Process data from cloud
 result = qi.process_cloud_data('aws', 'my-bucket/data.csv', processor_func, bucket_name='my-bucket')
 ```
 
@@ -90,40 +90,40 @@ pipeline.add_filter(lambda x: x > 10)
 results = pipeline.process_stream(data_stream)
 ```
 
-## 📚 Dokümantasyon
+## 📚 Documentation
 
-Detaylı API dokümantasyonu için [docs/api.md](docs/api.md) dosyasına bakın.
+For detailed API documentation, see [docs/api.md](docs/api.md).
 
-Komut listesi için [COMMANDS.md](COMMANDS.md) dosyasına bakın.
+For command list, see [COMMANDS.md](COMMANDS.md).
 
-## 🤝 Katkıda Bulunma
+## 🤝 Contributing
 
-Katkıda bulunmak için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasını okuyun.
+To contribute, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 📄 Lisans
+## 📄 License
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+This project is licensed under the MIT License.
 
-## 🆘 Destek
+## 🆘 Support
 
 - **GitHub Issues**: [https://github.com/erena6466/quickinsights/issues](https://github.com/erena6466/quickinsights/issues)
-- **Dokümantasyon**: [docs/](docs/) klasörü
-- **Örnekler**: [examples/](examples/) klasörü
+- **Documentation**: [docs/](docs/) folder
+- **Examples**: [examples/](examples/) folder
 
-## 🎯 Proje Durumu
+## 🎯 Project Status
 
-- ✅ **Core Library**: Tamamlandı
-- ✅ **Modular Architecture**: Tamamlandı
-- ✅ **Test Suite**: %100 başarı oranı
-- ✅ **Test PyPI**: Başarıyla yüklendi
-- ✅ **Main PyPI**: Ana PyPI'ye yükleme başarılı
-- 🔄 **CI/CD**: GitHub Actions ile otomatik test
-- 📚 **Documentation**: Kapsamlı dokümantasyon
+- ✅ **Core Library**: Completed
+- ✅ **Modular Architecture**: Completed
+- ✅ **Test Suite**: 100% success rate
+- ✅ **Test PyPI**: Successfully uploaded
+- ✅ **Main PyPI**: Main PyPI upload successful
+- 🔄 **CI/CD**: Automated testing with GitHub Actions
+- 📚 **Documentation**: Comprehensive documentation
 
-## 🚀 Gelecek Planları
+## 🚀 Future Plans
 
-- [ ] Ana PyPI'ye yükleme
-- [ ] ReadTheDocs entegrasyonu
+- [ ] Main PyPI upload
+- [ ] ReadTheDocs integration
 - [ ] Community building
 - [ ] Performance benchmarks
 - [ ] Additional ML algorithms
@@ -131,4 +131,4 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 ---
 
-**QuickInsights** - Veri analizini basitleştiren, performansı artıran Python kütüphanesi! 🚀📊
+**QuickInsights** - Simplifying data analysis and enhancing performance with Python! 🚀📊
