@@ -58,7 +58,7 @@ pip install quickinsights[fast,gpu,cloud,profiling]
 
 ### Geliştirici Kurulumu
 ```bash
-git clone https://github.com/yourusername/quickinsights.git
+git clone https://github.com/erena6466/quickinsights.git
 cd quickinsights
 pip install -e .
 ```

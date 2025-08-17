@@ -8,33 +8,39 @@ Bu dosya, QuickInsights Python kütüphanesinin proje yapısını ve dosya organ
 QuickInsights/
 ├── 📁 src/
 │   └── 📁 quickinsights/
-│       ├── 📄 __init__.py          # Ana kütüphane giriş noktası
+│       ├── 📄 __init__.py          # Ana kütüphane giriş noktası (sadeleştirilmiş)
 │       ├── 📄 core.py              # Ana analiz fonksiyonları
 │       ├── 📄 visualizer.py        # Görselleştirme modülü
-│       └── 📄 utils.py             # Yardımcı fonksiyonlar
-├── 📁 examples/
-│   └── 📄 basic_usage.py          # Temel kullanım örneği
-├── 📁 tests/
-│   └── 📄 test_quickinsights.py   # Test dosyaları
+│       └── 📄 utils.py             # Yardımcı fonksiyonlar ve performans araçları
+├── 📁 examples/                     # ✅ YENİ: Kullanım örnekleri
+│   ├── 📄 basic_usage.py          # Temel kullanım örneği
+│   ├── 📄 performance_benchmarks.py # Performans benchmark'ları
+│   └── 📄 quickinsights_tutorial.ipynb # Jupyter notebook tutorial
+├── 📁 tests/                       # ✅ GELİŞTİRİLDİ: Kapsamlı test suite
+│   └── 📄 test_quickinsights.py   # Test dosyaları (test coverage artırıldı)
 ├── 📄 README.md                    # Proje açıklaması
 ├── 📄 setup.py                     # Kurulum konfigürasyonu
-├── 📄 requirements.txt             # Bağımlılıklar
-└── 📄 PROJECT_STRUCTURE.md         # Bu dosya
+├── 📄 requirements.txt             # ✅ GÜNCELLENDİ: Tüm bağımlılıklar
+├── 📄 PROJECT_STRUCTURE.md         # Bu dosya
+└── 📄 OPTIMIZATION_ROADMAP.md      # Performans optimizasyon yol haritası
 ```
 
 ## 📚 Modül Açıklamaları
 
-### 🔧 `src/quickinsights/__init__.py`
+### 🔧 `src/quickinsights/__init__.py` ✅ GÜNCELLENDİ
 - Kütüphanenin ana giriş noktası
-- Tüm public fonksiyonları dışa aktarır
+- **Sadeleştirilmiş import yapısı** (50+ fonksiyon → 20+ ana fonksiyon)
+- **Lazy imports** ile gelişmiş özellikler
+- Modüler organizasyon (core, visualization, utilities)
 - Versiyon ve yazar bilgileri
-- Import edilebilir ana fonksiyonlar
 
 ### 🎯 `src/quickinsights/core.py`
 - **`analyze()`**: Ana analiz fonksiyonu
 - **`analyze_numeric()`**: Sayısal değişken analizi
 - **`analyze_categorical()`**: Kategorik değişken analizi
-- Kapsamlı veri seti analizi ve raporlama
+- **`LazyAnalyzer`**: Lazy evaluation ile analiz
+- **`parallel_analysis()`**: Paralel işleme
+- **`chunked_analysis()`**: Büyük veri setleri için parçalı analiz
 
 ### 🎨 `src/quickinsights/visualizer.py`
 - **`correlation_matrix()`**: Korelasyon matrisi görselleştirme
@@ -43,13 +49,15 @@ QuickInsights/
 - **`create_interactive_plots()`**: Plotly interaktif grafikler
 - **`box_plots()`**: Kutu grafikleri
 
-### 🛠️ `src/quickinsights/utils.py`
+### 🛠️ `src/quickinsights/utils.py` ✅ GENİŞLETİLDİ
 - **`get_data_info()`**: Veri seti bilgileri
 - **`detect_outliers()`**: Aykırı değer tespiti
-- **`get_correlation_strength()`**: Korelasyon gücü sınıflandırması
-- **`format_number()`**: Sayı formatlama
-- **`create_output_directory()`**: Çıktı dizini oluşturma
-- **`validate_dataframe()`**: DataFrame doğrulama
+- **`optimize_dtypes()`**: Veri tipi optimizasyonu
+- **`get_data_sample()`**: Veri örneği alma
+- **`AnalysisCache`**: Caching sistemi
+- **Performance utilities**: Numba, Dask, GPU desteği
+- **Big data utilities**: Paralel işleme, memory mapping
+- **Cloud utilities**: AWS, Azure, Google Cloud entegrasyonu
 
 ## 🚀 Kurulum ve Kullanım
 
@@ -63,7 +71,10 @@ cd QuickInsights
 pip install -e .
 
 # Testleri çalıştır
-python -m pytest tests/
+python -m pytest tests/ -v
+
+# Coverage ile test
+python -m pytest --cov=quickinsights tests/
 ```
 
 ### Kullanıcı Kurulumu
@@ -71,11 +82,14 @@ python -m pytest tests/
 # PyPI'dan kur
 pip install quickinsights
 
+# Gelişmiş özellikler ile
+pip install quickinsights[fast,gpu,cloud,profiling]
+
 # Veya geliştirme sürümünden
 pip install git+<repository-url>
 ```
 
-## 📖 Kullanım Örnekleri
+## 📖 Kullanım Örnekleri ✅ YENİ
 
 ### Temel Kullanım
 ```python
@@ -91,37 +105,58 @@ results = qi.analyze(df)
 
 ### Gelişmiş Kullanım
 ```python
-# Sadece sayısal değişkenler
-qi.analyze_numeric(df[['yas', 'maas']])
+# Lazy analyzer ile
+lazy_analyzer = qi.LazyAnalyzer(df)
+data_info = lazy_analyzer.get_data_info()
+numeric_analysis = lazy_analyzer.get_numeric_analysis()
 
-# Kategorik değişkenler
-qi.analyze_categorical(df[['sehir', 'egitim']])
+# Performans optimizasyonu
+optimized_df = qi.optimize_dtypes(df)
 
-# Grafikleri kaydet
-qi.analyze(df, save_plots=True, output_dir="./analiz_sonuclari")
+# Paralel analiz
+parallel_results = qi.parallel_analysis(df, n_jobs=4)
 ```
 
-## 🧪 Test Sistemi
+### Örnek Dosyaları Çalıştırma
+```bash
+# Temel kullanım
+python examples/basic_usage.py
+
+# Performans benchmark'ları
+python examples/performance_benchmarks.py
+
+# Jupyter notebook
+jupyter notebook examples/quickinsights_tutorial.ipynb
+```
+
+## 🧪 Test Sistemi ✅ GELİŞTİRİLDİ
 
 ### Test Çalıştırma
 ```bash
 # Tüm testleri çalıştır
-python -m pytest tests/
+python -m pytest tests/ -v
 
 # Belirli test dosyası
-python -m pytest tests/test_quickinsights.py
+python -m pytest tests/test_quickinsights.py -v
 
-# Verbose mod
-python -m pytest tests/ -v
+# Coverage ile test
+python -m pytest --cov=quickinsights tests/ --cov-report=html
+
+# Performance testleri
+python -m pytest tests/ -k "performance" -v
 ```
 
-### Test Kapsamı
-- ✅ Veri doğrulama
+### Test Kapsamı ✅ GENİŞLETİLDİ
+- ✅ Veri doğrulama ve hata yönetimi
 - ✅ Aykırı değer tespiti
 - ✅ İstatistiksel hesaplamalar
 - ✅ Görselleştirme fonksiyonları
-- ✅ Hata yönetimi
-- ✅ Çıktı dosya işlemleri
+- ✅ Lazy analyzer ve caching
+- ✅ Paralel işleme ve chunked analiz
+- ✅ Veri tipi optimizasyonu
+- ✅ Edge cases ve boundary conditions
+- ✅ Performance features
+- ✅ Memory usage tracking
 
 ## 📦 Dağıtım
 
@@ -132,6 +167,9 @@ python setup.py sdist bdist_wheel
 
 # PyPI'ya yükle
 twine upload dist/*
+
+# Test PyPI'ya yükle
+twine upload --repository testpypi dist/*
 ```
 
 ### Yerel Kurulum
@@ -143,16 +181,18 @@ pip install -e .
 pip install .
 ```
 
-## 🔄 Geliştirme Döngüsü
+## 🔄 Geliştirme Döngüsü ✅ GÜNCELLENDİ
 
 1. **Kod Yazma** → `src/quickinsights/` altında
-2. **Test Yazma** → `tests/` altında
-3. **Test Çalıştırma** → `python -m pytest`
-4. **Örnek Güncelleme** → `examples/` altında
-5. **Dokümantasyon** → README ve docstring'ler
+2. **Test Yazma** → `tests/` altında (kapsamlı test coverage)
+3. **Test Çalıştırma** → `python -m pytest --cov=quickinsights tests/`
+4. **Örnek Güncelleme** → `examples/` altında (yeni örnekler)
+5. **Dokümantasyon** → README, docstring'ler ve tutorial'lar
 6. **Versiyon Güncelleme** → `setup.py` ve `__init__.py`
+7. **Performance Testing** → Benchmark suite çalıştırma
+8. **Code Quality** → Black, flake8, mypy ile kod kalitesi
 
-## 📋 Gereksinimler
+## 📋 Gereksinimler ✅ GÜNCELLENDİ
 
 ### Minimum Python Sürümü
 - Python 3.8+
@@ -165,22 +205,55 @@ pip install .
 - plotly >= 5.0.0
 - scipy >= 1.7.0
 
-### Geliştirme Bağımlılıkları
+### Performance Bağımlılıkları ✅ YENİ
+- numba >= 0.56.0 (JIT compilation)
+- dask[complete] >= 2022.1.0 (paralel işleme)
+
+### GPU Desteği ✅ YENİ
+- cupy-cuda11x >= 10.0.0 (GPU acceleration)
+
+### Cloud Entegrasyonu ✅ YENİ
+- boto3 >= 1.26.0 (AWS)
+- azure-storage-blob >= 12.16.0 (Azure)
+- google-cloud-storage >= 2.8.0 (Google Cloud)
+
+### Profiling ve Monitoring ✅ YENİ
+- psutil >= 5.9.0 (sistem kaynakları)
+
+### Geliştirme Bağımlılıkları ✅ GÜNCELLENDİ
 - pytest >= 6.0
 - pytest-cov >= 2.0
-- black >= 21.0
-- flake8 >= 3.8
-- mypy >= 0.800
+- black >= 21.0 (kod formatı)
+- flake8 >= 3.8 (kod kalitesi)
+- mypy >= 0.800 (tip kontrolü)
 
-## 🎯 Gelecek Geliştirmeler
+## 🎯 Gelecek Geliştirmeler ✅ GÜNCELLENDİ
 
-- [ ] Daha fazla görselleştirme türü
-- [ ] Makine öğrenmesi entegrasyonu
+### ✅ Tamamlanan
+- [x] Lazy evaluation sistemi
+- [x] Paralel işleme (Dask)
+- [x] GPU hızlandırma (CuPy)
+- [x] Cloud entegrasyonu
+- [x] Async/await desteği
+- [x] Streaming analytics
+- [x] Memory mapping
+- [x] Performance profiling
+- [x] Benchmark suite
+
+### 🔄 Devam Eden
 - [ ] Web arayüzü
 - [ ] Daha fazla veri formatı desteği
-- [ ] Performans optimizasyonları
 - [ ] Çoklu dil desteği
+- [ ] Machine learning entegrasyonu
+
+### 📊 Yeni Özellikler
+- [ ] Real-time analytics
+- [ ] Automated insights
+- [ ] Data quality scoring
+- [ ] Interactive dashboards
 
 ---
 
 **QuickInsights** - Veri analizi artık çok kolay! 🚀
+
+*Son güncelleme: 2024*

@@ -1,71 +1,172 @@
 """
-QuickInsights - Tek komutla veri seti analizi
+QuickInsights - Creative and Innovative Big Data Analysis Library
 
-Bu kütüphane, veri analizi öğrenenler ve hızlı veri keşfi yapmak isteyenler için
-tasarlanmıştır. Tek satır kod ile veri setiniz hakkında kapsamlı analiz ve
-görselleştirmeler elde edebilirsiniz.
+A Python library that goes beyond standard data analysis libraries like NumPy and Pandas,
+providing creative insights, performance optimizations, and innovative features for both
+large and small datasets.
+
+Author: Eren Ata
+Version: 1.0.0
 """
 
-from .core import analyze, analyze_numeric, analyze_categorical, LazyAnalyzer, parallel_analysis, chunked_analysis
-from .visualizer import correlation_matrix, distribution_plots, summary_stats, create_interactive_plots, box_plots
-from .utils import get_data_info, detect_outliers, optimize_dtypes, get_data_sample, AnalysisCache, fast_correlation_matrix, fast_outlier_detection, fast_summary_stats, get_numba_status, benchmark_numba_vs_pandas, get_dask_status, create_dask_client, convert_to_dask, dask_analyze_large_dataset, benchmark_dask_vs_pandas, create_large_test_dataset, get_memory_mapping_status, create_memory_mapped_array, benchmark_memory_vs_mmap, get_profiling_status, profile_function, get_memory_usage, start_memory_tracking, get_memory_snapshot, benchmark_suite, get_async_status, async_analyze_dataset, async_data_loading, async_benchmark_async_vs_sync, run_async_example, StreamingAnalyzer, create_streaming_data_generator, benchmark_streaming_vs_batch, get_gpu_status, convert_to_gpu_array, gpu_correlation_matrix, gpu_outlier_detection, gpu_summary_stats, benchmark_gpu_vs_cpu, get_cloud_status, CloudDataManager, benchmark_cloud_vs_local
+# Core modules
+from .core import (
+    analyze,
+    get_data_info,
+    analyze_numeric,
+    analyze_categorical,
+    detect_outliers,
+    validate_dataframe,
+    summary_stats,
+    box_plots,
+    create_interactive_plots
+)
 
-__version__ = "0.1.0"
-__author__ = "Your Name"
-__email__ = "your.email@example.com"
+from .visualizer import (
+    correlation_matrix,
+    distribution_plots
+)
 
+# Utility modules with lazy loading
+from .utils import (
+    get_performance_utils,
+    get_big_data_utils,
+    get_gpu_utils,
+    get_cloud_utils,
+    get_validation_utils,
+    get_all_utils,
+    get_utility_status,
+    print_utility_status,
+    get_available_features,
+    check_dependencies,
+    get_system_info,
+    create_utility_report
+)
+
+# New modular utilities
+from .performance import (
+    lazy_evaluate,
+    cache_result,
+    parallel_process,
+    chunked_process,
+    memory_optimize,
+    performance_profile,
+    benchmark_function
+)
+
+from .big_data import (
+    process_large_file,
+    stream_data,
+    get_dask_status,
+    get_gpu_status,
+    get_memory_mapping_status,
+    get_distributed_status,
+    estimate_memory_usage,
+    get_system_memory_info,
+    check_memory_constraints
+)
+
+from .cloud_integration import (
+    get_aws_status,
+    get_azure_status,
+    get_gcp_status,
+    upload_to_cloud,
+    download_from_cloud,
+    list_cloud_files,
+    process_cloud_data
+)
+
+from .data_validation import (
+    validate_column_types,
+    check_data_quality,
+    clean_data,
+    validate_schema,
+    detect_anomalies,
+    validate_email_format,
+    validate_phone_format,
+    validate_date_format
+)
+
+# Public API
 __all__ = [
-    "analyze",
-    "analyze_numeric",
-    "analyze_categorical",
-    "LazyAnalyzer",
-    "parallel_analysis",
-    "chunked_analysis",
-    "correlation_matrix",
-    "distribution_plots",
-    "summary_stats",
-    "create_interactive_plots",
-    "box_plots",
-    "get_data_info",
-    "detect_outliers",
-    "optimize_dtypes",
-    "get_data_sample",
-    "AnalysisCache",
-    "fast_correlation_matrix",
-    "fast_outlier_detection",
-    "fast_summary_stats",
-    "get_numba_status",
-    "benchmark_numba_vs_pandas",
-    "get_dask_status",
-    "create_dask_client",
-    "convert_to_dask",
-    "dask_analyze_large_dataset",
-    "benchmark_dask_vs_pandas",
-    "create_large_test_dataset",
-    "get_memory_mapping_status",
-    "create_memory_mapped_array",
-    "benchmark_memory_vs_mmap",
-    "get_profiling_status",
-    "profile_function",
-    "get_memory_usage",
-    "start_memory_tracking",
-    "get_memory_snapshot",
-    "benchmark_suite",
-    "get_async_status",
-    "async_analyze_dataset",
-    "async_data_loading",
-    "async_benchmark_async_vs_sync",
-    "run_async_example",
-    "StreamingAnalyzer",
-    "create_streaming_data_generator",
-    "benchmark_streaming_vs_batch",
-    "get_gpu_status",
-    "convert_to_gpu_array",
-    "gpu_correlation_matrix",
-    "gpu_outlier_detection",
-    "gpu_summary_stats",
-    "benchmark_gpu_vs_cpu",
-    "get_cloud_status",
-    "CloudDataManager",
-    "benchmark_cloud_vs_local"
+    # Core analysis functions
+    'analyze',
+    'get_data_info',
+    'analyze_numeric',
+    'analyze_categorical',
+    'detect_outliers',
+    'validate_dataframe',
+    'summary_stats',
+    'box_plots',
+    'create_interactive_plots',
+    
+    # Visualization functions
+    'correlation_matrix',
+    'distribution_plots',
+    
+    # Utility functions
+    'get_performance_utils',
+    'get_big_data_utils',
+    'get_gpu_utils',
+    'get_cloud_utils',
+    'get_validation_utils',
+    'get_all_utils',
+    'get_utility_status',
+    'print_utility_status',
+    'get_available_features',
+    'check_dependencies',
+    'get_system_info',
+    'create_utility_report',
+    
+    # Performance utilities
+    'lazy_evaluate',
+    'cache_result',
+    'parallel_process',
+    'chunked_process',
+    'memory_optimize',
+    'performance_profile',
+    'benchmark_function',
+    
+    # Big data utilities
+    'process_large_file',
+    'stream_data',
+    'get_dask_status',
+    'get_gpu_status',
+    'get_memory_mapping_status',
+    'get_distributed_status',
+    'estimate_memory_usage',
+    'get_system_memory_info',
+    'check_memory_constraints',
+    
+    # Cloud integration utilities
+    'get_aws_status',
+    'get_azure_status',
+    'get_gcp_status',
+    'upload_to_cloud',
+    'download_from_cloud',
+    'list_cloud_files',
+    'process_cloud_data',
+    
+    # Data validation utilities
+    'validate_column_types',
+    'check_data_quality',
+    'clean_data',
+    'validate_schema',
+    'detect_anomalies',
+    'validate_email_format',
+    'validate_phone_format',
+    'validate_date_format'
 ]
+
+# Version information
+__version__ = "1.0.0"
+__author__ = "Eren A"
+__description__ = "Creative and Innovative Big Data Analysis Library"
+
+# Initialize utility status on import
+try:
+    from .utils import print_utility_status
+    print("🚀 QuickInsights loaded successfully!")
+    print("📊 Use print_utility_status() to see available features")
+except ImportError as e:
+    print(f"⚠️  Warning: Some utilities may not be available: {e}")

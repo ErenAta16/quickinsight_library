@@ -11,7 +11,7 @@ setup(
     description="Tek komutla veri seti analizi yapan Python kütüphanesi",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/quickinsights",
+    url="https://github.com/erena6466/quickinsights",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
@@ -63,8 +63,8 @@ setup(
     },
     keywords="data analysis, data science, visualization, pandas, numpy",
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/quickinsights/issues",
-        "Source": "https://github.com/yourusername/quickinsights",
-        "Documentation": "https://github.com/yourusername/quickinsights/docs",
+        "Bug Reports": "https://github.com/erena6466/quickinsights/issues",
+        "Source": "https://github.com/erena6466/quickinsights",
+        "Documentation": "https://github.com/erena6466/quickinsights/docs",
     },
 )
