@@ -259,9 +259,9 @@ class TrendAnalyzer(DataTransformation):
                             trends[col] = {
                                 "slope": float(slope),
                                 "trend_strength": float(r_squared),
-                                "direction": "increasing"
-                                if slope > 0
-                                else "decreasing",
+                                "direction": (
+                                    "increasing" if slope > 0 else "decreasing"
+                                ),
                                 "magnitude": abs(slope),
                             }
                     except Exception as e:
