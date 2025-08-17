@@ -28,7 +28,8 @@ plt.rcParams["font.family"] = ["DejaVu Sans", "Arial", "sans-serif"]
 plt.rcParams["font.sans-serif"] = ["DejaVu Sans", "Arial", "sans-serif"]
 # Font uyarılarını tamamen kapat
 import warnings
-warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
+
+warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
 
 
 def correlation_matrix(

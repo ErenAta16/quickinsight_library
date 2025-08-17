@@ -9,7 +9,8 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List, Any
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 try:
     from sklearn.cluster import KMeans, DBSCAN, IsolationForest
@@ -18,6 +19,7 @@ try:
     from sklearn.decomposition import PCA
     from sklearn.feature_selection import SelectKBest, f_regression
     from sklearn.metrics import silhouette_score
+
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
@@ -25,6 +27,7 @@ except ImportError:
 
 try:
     from scipy import stats
+
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
@@ -341,7 +344,9 @@ class AIInsightEngine:
                         patterns[f"{numeric_col}_trend"] = {
                             "slope": float(slope),
                             "trend_strength": float(trend_strength),
-                            "p_value": float(0),  # linregress does not return p_value directly
+                            "p_value": float(
+                                0
+                            ),  # linregress does not return p_value directly
                             "seasonality_strength": float(seasonality_strength),
                         }
                 except Exception as e:

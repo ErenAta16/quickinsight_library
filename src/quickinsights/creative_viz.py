@@ -612,7 +612,9 @@ class CreativeVizEngine:
         if len(numeric_cols) >= 3:
             fig_parallel = self.create_parallel_coordinates(numeric_cols[:3])
             fig_parallel.write_html(f"{output_dir}/parallel_coordinates.html")
-            exported_files["parallel_coordinates"] = f"{output_dir}/parallel_coordinates.html"
+            exported_files[
+                "parallel_coordinates"
+            ] = f"{output_dir}/parallel_coordinates.html"
 
         # Heatmap
         if len(numeric_cols) >= 2:
