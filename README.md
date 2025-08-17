@@ -14,7 +14,13 @@ Tek komutla veri seti analizi yapan, kreatif ve yenilikçi Python kütüphanesi.
 
 ## 🚀 Kurulum
 
-### **Test PyPI'den Kurulum (Önerilen - Güncel Versiyon):**
+### **Ana PyPI'den Kurulum (Önerilen):**
+
+```bash
+pip install quickinsights
+```
+
+### **Test PyPI'den Kurulum (Geliştirici Versiyonu):**
 
 ```bash
 pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ quickinsights
@@ -110,7 +116,7 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 - ✅ **Modular Architecture**: Tamamlandı
 - ✅ **Test Suite**: %100 başarı oranı
 - ✅ **Test PyPI**: Başarıyla yüklendi
-- ⏳ **Main PyPI**: Ana PyPI'ye yükleme bekleniyor
+- ✅ **Main PyPI**: Ana PyPI'ye yükleme başarılı
 - 🔄 **CI/CD**: GitHub Actions ile otomatik test
 - 📚 **Documentation**: Kapsamlı dokümantasyon
 
