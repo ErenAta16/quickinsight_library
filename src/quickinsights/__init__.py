@@ -9,20 +9,61 @@ Author: Eren Ata
 Version: 1.0.0
 """
 
-# Core modules
-from .core import (
-    analyze,
-    get_data_info,
-    analyze_numeric,
-    analyze_categorical,
-    detect_outliers,
-    validate_dataframe,
-    summary_stats,
-    box_plots,
-    create_interactive_plots,
+# Core modules are intentionally NOT imported at package import time to avoid
+# pulling heavy optional dependencies (e.g., matplotlib) during lightweight usage.
+_CORE_AVAILABLE = False
+
+# Pandas integration module
+from .pandas_integration import smart_group_analysis, smart_pivot_table, intelligent_merge
+
+# NumPy integration module
+from .numpy_integration import auto_math_analysis
+
+# Scikit-learn ML integration modules
+from .ml_pipeline import auto_ml_pipeline
+from .feature_selection import smart_feature_selection
+from .model_selection import intelligent_model_selection
+
+# Dask integration module for big data processing
+from .dask_integration import smart_dask_analysis, distributed_compute, big_data_pipeline
+
+# Neural-inspired pattern mining
+from .neural_patterns import (
+    neural_pattern_mining,
+    autoencoder_anomaly_scores,
+    sequence_signature_extract,
 )
 
-from .visualizer import correlation_matrix, distribution_plots
+# Quantum-inspired utilities
+from .quantum_insights import (
+    quantum_superposition_sample,
+    amplitude_pca,
+    quantum_correlation_map,
+    quantum_anneal_optimize,
+)
+
+# Holographic-style visualization helpers (lightweight, no heavy deps required)
+from .holographic_viz import (
+    embed_3d_projection,
+    volumetric_density_plot,
+    export_vr_scene_stub,
+    plotly_embed_3d,
+)
+
+# Acceleration utilities (GPU/Memory)
+from .acceleration import (
+    gpu_available,
+    get_array_backend,
+    standardize_array,
+    backend_dot,
+    gpu_corrcoef,
+    memmap_array,
+    chunked_apply,
+    benchmark_backend,
+)
+
+# Visualizer is intentionally NOT imported at package import time to avoid heavy deps.
+_VIS_AVAILABLE = False
 
 # Utility modules with lazy loading
 from .utils import (
@@ -96,6 +137,43 @@ __all__ = [
     "summary_stats",
     "box_plots",
     "create_interactive_plots",
+    # Pandas integration functions
+    "smart_group_analysis",
+    "smart_pivot_table",
+    "intelligent_merge",
+    # NumPy integration functions
+    "auto_math_analysis",
+    # Scikit-learn ML integration functions
+    "auto_ml_pipeline",
+    "smart_feature_selection",
+    "intelligent_model_selection",
+    # Dask integration functions for big data processing
+    "smart_dask_analysis",
+    "distributed_compute",
+    "big_data_pipeline",
+    # Neural-inspired
+    "neural_pattern_mining",
+    "autoencoder_anomaly_scores",
+    "sequence_signature_extract",
+    # Quantum-inspired
+    "quantum_superposition_sample",
+    "amplitude_pca",
+    "quantum_correlation_map",
+    "quantum_anneal_optimize",
+    # Holographic viz
+    "embed_3d_projection",
+    "volumetric_density_plot",
+    "export_vr_scene_stub",
+    "plotly_embed_3d",
+    # Acceleration
+    "gpu_available",
+    "get_array_backend",
+    "standardize_array",
+    "backend_dot",
+    "gpu_corrcoef",
+    "memmap_array",
+    "chunked_apply",
+    "benchmark_backend",
     # Visualization functions
     "correlation_matrix",
     "distribution_plots",
@@ -154,11 +232,4 @@ __version__ = "1.0.0"
 __author__ = "Eren A"
 __description__ = "Creative and Innovative Big Data Analysis Library"
 
-# Initialize utility status on import
-try:
-    from .utils import print_utility_status
-
-    print("🚀 QuickInsights loaded successfully!")
-    print("📊 Use print_utility_status() to see available features")
-except ImportError as e:
-    print(f"⚠️  Warning: Some utilities may not be available: {e}")
+# Avoid side effects and printing at import time
