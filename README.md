@@ -11,6 +11,8 @@ QuickInsights is a Python package that provides comprehensive data analysis capa
 - **Comprehensive Data Analysis**: Single-command data set analysis with detailed insights
 - **Advanced Visualization**: Integration with Matplotlib, Seaborn and Plotly for professional charts
 - **Performance Optimization**: Lazy evaluation, caching, parallel processing for large datasets
+- **Big Data (Dask)**: Intelligent distributed analysis and pipelines
+- **Unique Modules**: Neural pattern mining, quantum-inspired sampling and correlation, holographic 3D projections
 - **Cloud Integration**: Support for AWS S3, Azure Blob, Google Cloud Storage
 - **AI-Powered Insights**: Automatic pattern detection and trend analysis using machine learning
 - **Real-time Pipeline**: Streaming data processing capabilities
@@ -97,6 +99,40 @@ pipeline.add_filter(lambda x: x > 10)
 results = pipeline.process_stream(data_stream)
 ```
 
+## New Unique Modules (Highlights)
+
+### Neural Patterns
+```python
+from quickinsights import neural_pattern_mining, autoencoder_anomaly_scores, sequence_signature_extract
+patterns = neural_pattern_mining(df, n_patterns=5)
+anoms = autoencoder_anomaly_scores(df)
+sigs = sequence_signature_extract(df.select_dtypes(float).iloc[:, 0], window=128, step=32, n_components=3)
+```
+
+### Quantum-Inspired
+```python
+from quickinsights import quantum_superposition_sample, amplitude_pca, quantum_correlation_map
+sample = quantum_superposition_sample(df, n_samples=5000)
+pca = amplitude_pca(df, n_components=8)
+qc = quantum_correlation_map(df, n_blocks=3)
+```
+
+### Holographic (3D, non‑VR)
+```python
+from quickinsights import embed_3d_projection, plotly_embed_3d
+emb = embed_3d_projection(df)
+fig_res = plotly_embed_3d(emb["embedding"])  # {"success": True, "figure": fig}
+```
+
+### Acceleration (GPU/Memory)
+```python
+from quickinsights import gpu_available, gpu_corrcoef, memmap_array, chunked_apply
+print("GPU usable:", gpu_available())
+corr = gpu_corrcoef(df.to_numpy())
+mmap = memmap_array('./quickinsights_output/tmp.mmap', 'float32', (1_000_000, 8))
+parts = chunked_apply(lambda x: x.sum(), df.to_numpy(), chunk_rows=50_000)
+```
+
 ## Dependencies
 
 - **Core**: pandas>=1.3.0, numpy>=1.20.0, matplotlib>=3.3.0
@@ -106,7 +142,7 @@ results = pipeline.process_stream(data_stream)
 
 ## Documentation
 
-For detailed API documentation, see [docs/api.md](docs/api.md).
+For detailed API documentation, see [docs/API_REFERENCE.md](docs/API_REFERENCE.md).
 
 For command list, see [COMMANDS.md](COMMANDS.md).
 

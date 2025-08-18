@@ -300,3 +300,102 @@ All functions include proper error handling and will raise appropriate exception
 For complete usage examples, see the examples directory and the main README file.
 
 This API reference covers the core functionality of QuickInsights. For advanced usage patterns and best practices, refer to the documentation and examples.
+
+---
+
+## Neural Patterns (Neural-inspired)
+
+### `neural_pattern_mining(data, n_patterns=5, random_state=42, batch_size=4096)`
+- Discovers recurring patterns via MiniBatch KMeans. Returns pattern centers, labels, and counts.
+
+### `autoencoder_anomaly_scores(data, hidden_ratio=0.5, random_state=42, max_iter=200)`
+- Computes anomaly scores via lightweight autoencoder surrogate (MLPRegressor), falls back to PCA reconstruction error.
+
+### `sequence_signature_extract(data, window=64, step=16, n_components=2, random_state=42)`
+- Extracts FFT+PCA-based signatures from (multi)variate time series.
+
+Example:
+```python
+from quickinsights import neural_pattern_mining, autoencoder_anomaly_scores, sequence_signature_extract
+res = neural_pattern_mining(df, n_patterns=5)
+scores = autoencoder_anomaly_scores(df)
+sigs = sequence_signature_extract(series, window=128, step=32, n_components=3)
+```
+
+## Quantum Insights (Quantum-inspired)
+
+### `quantum_superposition_sample(data, n_samples=10000, random_state=42)`
+- Superposition-inspired sampling using randomized projections (keeps informative modes).
+
+### `amplitude_pca(data, n_components=10, random_state=42)`
+- Amplitude-encoding-inspired dimensionality reduction using randomized PCA.
+
+### `quantum_correlation_map(data, n_blocks=5, block_size=20000, random_state=42)`
+- Robust high-dimensional correlation via median-of-means across random blocks.
+
+### `quantum_anneal_optimize(estimator, param_grid, X, y, max_iters=30, cv_folds=3, random_state=42)`
+- Annealing-style hyperparameter search on discrete grids.
+
+Example:
+```python
+from quickinsights import quantum_superposition_sample, amplitude_pca, quantum_correlation_map
+sample = quantum_superposition_sample(df, n_samples=5000)
+pca = amplitude_pca(df, n_components=8)
+qc = quantum_correlation_map(df, n_blocks=3)
+```
+
+## Holographic Visualization (3D, non‑VR)
+
+### `embed_3d_projection(data, method='pca', random_state=42)`
+- 3D embedding using PCA (or UMAP if available). Returns DataFrame with `x,y,z`.
+
+### `volumetric_density_plot(data, bins=32)`
+- Computes 3D histogram volume suitable for volumetric visualization.
+
+### `plotly_embed_3d(embedding, color=None, size=3)`
+- Builds interactive Plotly 3D scatter. Returns `{"success": True, "figure": fig}` on success.
+
+### `export_vr_scene_stub(embedding, out_path)`
+- Exports a lightweight JSON point-cloud scene (portable; VR export is optional and not required).
+
+Example:
+```python
+from quickinsights import embed_3d_projection, plotly_embed_3d
+emb = embed_3d_projection(df)
+fig_res = plotly_embed_3d(emb["embedding"], size=2)
+```
+
+## Performance Acceleration (GPU/Memory)
+
+### `gpu_available()`
+- Returns whether CuPy GPU backend is usable on this system.
+
+### `get_array_backend(prefer_gpu=True)`
+- Returns `{"xp": module, "name": "cupy|numpy", "device": "gpu|cpu"}` for array operations.
+
+### `standardize_array(array, axis=0, prefer_gpu=True)`
+- Z-score standardization with GPU fallback to CPU; always returns NumPy array.
+
+### `backend_dot(a, b, prefer_gpu=True)`
+- Dot product using selected backend; returns NumPy array and falls back safely.
+
+### `gpu_corrcoef(array, prefer_gpu=True)`
+- Correlation matrix using GPU if available, else CPU; returns NumPy array.
+
+### `memmap_array(path, dtype, shape, mode='w+')`
+- Creates/opens memory-mapped arrays; ensures directory exists.
+
+### `chunked_apply(func, array, chunk_rows=100000)`
+- Applies function to array in row-chunks for memory efficiency.
+
+### `benchmark_backend(func, repeats=3, prefer_gpu=True)`
+- Benchmarks CPU vs GPU for a simple callable that accepts `xp` (numpy/cupy).
+
+Example:
+```python
+from quickinsights import gpu_available, gpu_corrcoef, memmap_array, chunked_apply
+has_gpu = gpu_available()
+corr = gpu_corrcoef(df.to_numpy())
+mmap = memmap_array('./quickinsights_output/tmp.mmap', 'float32', (1_000_000, 8))
+res = chunked_apply(lambda x: x.sum(), df.to_numpy(), chunk_rows=50_000)
+```
