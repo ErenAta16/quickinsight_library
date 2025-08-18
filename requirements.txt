@@ -1,7 +1,9 @@
 # Core dependencies
 pandas>=1.5.0
-numpy>=1.21.0
-matplotlib>=3.5.0
+# Pin NumPy <2 to avoid binary wheels incompatibilities on Windows (e.g., matplotlib built against NumPy 1.x)
+numpy>=1.21.0,<2
+# Keep matplotlib compatible with NumPy<2 baseline
+matplotlib>=3.5.0,<3.8
 seaborn>=0.12.0
 plotly>=5.10.0
 scipy>=1.9.0
@@ -9,6 +11,8 @@ scipy>=1.9.0
 # Performance optimization
 numba>=0.57.0
 dask[complete]>=2022.8.0
+# ML baseline
+scikit-learn>=1.1.0,<1.6
 
 # GPU acceleration (optional)
 cupy-cuda11x>=11.0.0

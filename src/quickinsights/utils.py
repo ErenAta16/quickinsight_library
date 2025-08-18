@@ -146,7 +146,7 @@ def detect_outliers(
 
         col_data = df[col].dropna()
         if len(col_data) == 0:
-            continue
+                continue
 
         outlier_mask = pd.Series(False, index=df.index)
 
