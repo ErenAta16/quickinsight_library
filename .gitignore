@@ -130,6 +130,7 @@ dmypy.json
 
 # QuickInsights specific
 quickinsights_output/
+src/quickinsights/quickinsights_output/
 test_output/
 .benchmarks/
 
