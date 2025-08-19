@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="quickinsights",
-    version="0.2.0",
+    version="0.2.1",
     author="Eren Ata",
     author_email="erena6466@gmail.com",
     description="A creative and innovative Python library for data analysis with single command",
