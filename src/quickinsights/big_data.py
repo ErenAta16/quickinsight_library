@@ -29,6 +29,9 @@ def get_big_data_utils():
         "get_gpu_status": get_gpu_status,
         "get_memory_mapping_status": get_memory_mapping_status,
         "get_distributed_status": get_distributed_status,
+        "detect_engines": detect_engines,
+        "select_dataframe_engine": select_dataframe_engine,
+        "read_table_auto": read_table_auto,
     }
 
 
@@ -359,3 +362,106 @@ def check_memory_constraints(
             else "Safe to process"
         ),
     }
+
+
+# ==========================================================
+# Auto engine selector: pandas | polars | duckdb
+# ==========================================================
+def detect_engines() -> Dict[str, bool]:
+    """Detect availability of optional dataframe/query engines."""
+    available = {"pandas": True, "polars": False, "duckdb": False}
+    try:
+        import polars as _pl  # noqa: F401
+        available["polars"] = True
+    except Exception:
+        pass
+    try:
+        import duckdb as _dd  # noqa: F401
+        available["duckdb"] = True
+    except Exception:
+        pass
+    return available
+
+
+def select_dataframe_engine(
+    df: Optional[pd.DataFrame] = None,
+    file_path: Optional[str] = None,
+    row_count_estimate: Optional[int] = None,
+    memory_limit_mb: Optional[float] = None,
+    prefer: str = "auto",
+) -> Dict[str, Any]:
+    """
+    Heuristically select a dataframe engine.
+
+    - If prefer != auto and engine is available, choose it.
+    - Else use simple heuristics:
+      * If DuckDB available and file is parquet/csv and rows are large -> duckdb
+      * Else if Polars available and rows are large -> polars
+      * Else fallback to pandas
+    """
+    avail = detect_engines()
+    reason = []
+
+    # If DataFrame is provided, use its row count
+    if df is not None:
+        row_count_estimate = len(df)
+
+    if prefer != "auto" and avail.get(prefer, False):
+        return {"engine": prefer, "reason": f"user_preference:{prefer}", "available": avail}
+
+    # Guess large if unknown
+    is_large = bool(row_count_estimate and row_count_estimate > 1_000_000)
+    if file_path:
+        lower = file_path.lower()
+        if any(lower.endswith(ext) for ext in [".parquet", ".csv"]):
+            if avail["duckdb"] and (is_large or lower.endswith(".parquet")):
+                reason.append("duckdb_for_parquet_or_large_csv")
+                return {"selected_engine": "duckdb", "reason": ",".join(reason), "available": avail}
+    
+    if avail["polars"] and (is_large or (row_count_estimate and row_count_estimate > 200_000)):
+        reason.append("polars_for_large_tabular")
+        return {"selected_engine": "polars", "reason": ",".join(reason), "available": avail}
+
+    return {"selected_engine": "pandas", "reason": "default_or_small", "available": avail}
+
+
+def read_table_auto(
+    file_path: str,
+    prefer: str = "auto",
+    row_count_estimate: Optional[int] = None,
+    **kwargs,
+) -> pd.DataFrame:
+    """
+    Read a table using the selected engine, returning a pandas.DataFrame for API consistency.
+
+    Supports CSV/Parquet. Falls back to pandas if engines are unavailable.
+    """
+    sel = select_dataframe_engine(file_path=file_path, row_count_estimate=row_count_estimate, prefer=prefer)
+    engine = sel["selected_engine"]
+
+    if engine == "duckdb":
+        try:
+            import duckdb
+            if file_path.lower().endswith(".parquet"):
+                q = f"SELECT * FROM parquet_scan('{file_path}')"
+                return duckdb.sql(q).df()
+            elif file_path.lower().endswith(".csv"):
+                q = f"SELECT * FROM read_csv_auto('{file_path}')"
+                return duckdb.sql(q).df()
+        except Exception:
+            pass
+
+    if engine == "polars":
+        try:
+            import polars as pl
+            if file_path.lower().endswith(".parquet"):
+                return pl.scan_parquet(file_path).collect().to_pandas()
+            elif file_path.lower().endswith(".csv"):
+                return pl.scan_csv(file_path).collect().to_pandas()
+        except Exception:
+            pass
+
+    # Fallback to pandas
+    if file_path.lower().endswith(".parquet"):
+        return pd.read_parquet(file_path, **{k: v for k, v in kwargs.items() if k != "chunksize"})
+    return pd.read_csv(file_path, **kwargs)

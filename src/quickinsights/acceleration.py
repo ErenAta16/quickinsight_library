@@ -55,7 +55,7 @@ def _to_backend_array(array: Union[np.ndarray, "cp.ndarray"], xp_module):  # typ
         return np.asarray(array.get())  # type: ignore[attr-defined]
     else:
         # xp is CuPy
-        if _CUPY_AVAILABLE and not isinstance(array, cp.ndarray):  # type: ignore[attr-defined]
+        if _CUPY_USABLE and not isinstance(array, cp.ndarray):  # type: ignore[attr-defined]
             return cp.asarray(array)  # type: ignore[attr-defined]
         return array
 

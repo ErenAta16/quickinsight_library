@@ -125,6 +125,35 @@ fig_res = plotly_embed_3d(emb["embedding"])  # {"success": True, "figure": fig}
 ```
 
 ### Acceleration (GPU/Memory)
+### Data Validation (New Creative Capabilities)
+```python
+from quickinsights.data_validation import infer_constraints, drift_radar
+
+# 1) Infer constraints (schema-by-example)
+contract = infer_constraints(df)
+print(contract["contract"])  # dtype, nullable, unique, min/max or domain
+
+# 2) Drift radar (baseline vs current)
+base = df.sample(frac=0.5, random_state=42)
+current = df.drop(base.index)
+drift = drift_radar(base, current)
+print(drift["overall_risk"])  # low | medium | high
+```
+
+### Explainable AI (New)
+```python
+from quickinsights import contrastive_explanations
+from sklearn.linear_model import LogisticRegression
+
+# Train a simple model
+X = df.select_dtypes(float).fillna(0).to_numpy()
+y = (X[:, 0] > X[:, 0].mean()).astype(int)
+model = LogisticRegression().fit(X, y)
+
+# Contrastive explanation for instance 0
+cx = contrastive_explanations(model, X, y, index=0)
+print(cx["suggestions"][:3])  # Minimal directional changes toward opposite class
+```
 ```python
 from quickinsights import gpu_available, gpu_corrcoef, memmap_array, chunked_apply
 print("GPU usable:", gpu_available())
@@ -145,6 +174,8 @@ parts = chunked_apply(lambda x: x.sum(), df.to_numpy(), chunk_rows=50_000)
 For detailed API documentation, see [docs/API_REFERENCE.md](docs/API_REFERENCE.md).
 
 For command list, see [COMMANDS.md](COMMANDS.md).
+
+For the new creative features, see [docs/CREATIVE_FEATURES.md](docs/CREATIVE_FEATURES.md).
 
 ## Contributing
 

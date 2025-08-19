@@ -232,3 +232,226 @@ def intelligent_model_selection(*args, **kwargs):
     model_selector = ModelSelectionIntegration()
     return model_selector.intelligent_model_selection(*args, **kwargs)
 
+
+def performance_benchmark(
+    models: List,
+    X: Union[np.ndarray, pd.DataFrame],
+    y: Union[np.ndarray, pd.Series],
+    cv_folds: int = 5,
+    metrics: Optional[List[str]] = None,
+    include_timing: bool = True,
+    save_results: bool = False,
+    output_dir: str = "./quickinsights_output"
+) -> Dict[str, Any]:
+    """
+    Comprehensive performance benchmarking of multiple models
+    
+    Parameters:
+    -----------
+    models : list
+        List of model objects to benchmark
+    X : array-like
+        Training features
+    y : array-like
+        Training targets
+    cv_folds : int
+        Number of cross-validation folds
+    metrics : list, optional
+        List of metrics to compute
+    include_timing : bool
+        Include timing information
+    save_results : bool
+        Save results to files
+    output_dir : str
+        Output directory for saved files
+        
+    Returns:
+    --------
+    dict : Benchmark results
+    """
+    
+    try:
+        import time
+        from sklearn.model_selection import cross_val_score
+        from sklearn.metrics import (
+            accuracy_score, precision_score, recall_score, f1_score,
+            r2_score, mean_squared_error, mean_absolute_error
+        )
+        
+        print(f"🏁 Starting performance benchmark for {len(models)} models...")
+        
+        # Auto-detect task type
+        unique_targets = len(np.unique(y))
+        task_type = 'classification' if unique_targets <= 20 else 'regression'
+        
+        # Default metrics
+        if metrics is None:
+            if task_type == 'classification':
+                metrics = ['accuracy', 'precision', 'recall', 'f1']
+            else:
+                metrics = ['r2', 'rmse', 'mae']
+        
+        results = {
+            'task_type': task_type,
+            'cv_folds': cv_folds,
+            'metrics': metrics,
+            'models': {},
+            'summary': {},
+            'rankings': {},
+            'insights': []
+        }
+        
+        # Benchmark each model
+        for i, model in enumerate(models):
+            model_name = f"Model_{i+1}"
+            if hasattr(model, '__class__'):
+                model_name = model.__class__.__name__
+            
+            print(f"🔍 Benchmarking {model_name}...")
+            
+            model_results = {
+                'name': model_name,
+                'type': type(model).__name__,
+                'cv_scores': {},
+                'metrics': {},
+                'timing': {}
+            }
+            
+            # Cross-validation scores
+            for metric in metrics:
+                try:
+                    if metric in ['accuracy', 'precision', 'recall', 'f1'] and task_type == 'classification':
+                        scoring = metric
+                    elif metric in ['r2', 'rmse', 'mae'] and task_type == 'regression':
+                        scoring = metric
+                    else:
+                        # Use default scoring for the task
+                        scoring = 'accuracy' if task_type == 'classification' else 'r2'
+                    
+                    cv_scores = cross_val_score(model, X, y, cv=cv_folds, scoring=scoring)
+                    model_results['cv_scores'][metric] = {
+                        'mean': float(cv_scores.mean()),
+                        'std': float(cv_scores.std()),
+                        'min': float(cv_scores.min()),
+                        'max': float(cv_scores.max())
+                    }
+                except Exception as e:
+                    model_results['cv_scores'][metric] = {'error': str(e)}
+            
+            # Training and prediction timing
+            if include_timing:
+                try:
+                    # Training time
+                    start_time = time.time()
+                    model.fit(X, y)
+                    training_time = time.time() - start_time
+                    
+                    # Prediction time
+                    start_time = time.time()
+                    y_pred = model.predict(X)
+                    prediction_time = time.time() - start_time
+                    
+                    model_results['timing'] = {
+                        'training_time': training_time,
+                        'prediction_time': prediction_time,
+                        'total_time': training_time + prediction_time
+                    }
+                except Exception as e:
+                    model_results['timing'] = {'error': str(e)}
+            
+            # Additional metrics
+            try:
+                y_pred = model.predict(X)
+                
+                if task_type == 'classification':
+                    model_results['metrics'] = {
+                        'accuracy': float(accuracy_score(y, y_pred)),
+                        'precision': float(precision_score(y, y_pred, average='weighted')),
+                        'recall': float(recall_score(y, y_pred, average='weighted')),
+                        'f1': float(f1_score(y, y_pred, average='weighted'))
+                    }
+                else:  # Regression
+                    model_results['metrics'] = {
+                        'r2': float(r2_score(y, y_pred)),
+                        'rmse': float(np.sqrt(mean_squared_error(y, y_pred))),
+                        'mae': float(mean_absolute_error(y, y_pred))
+                    }
+            except Exception as e:
+                model_results['metrics'] = {'error': str(e)}
+            
+            results['models'][model_name] = model_results
+        
+        # Generate rankings
+        for metric in metrics:
+            if metric in ['accuracy', 'precision', 'recall', 'f1', 'r2']:
+                # Higher is better
+                rankings = sorted(
+                    [(name, results['models'][name]['cv_scores'].get(metric, {}).get('mean', 0)) 
+                     for name in results['models'].keys()],
+                    key=lambda x: x[1], reverse=True
+                )
+            else:  # RMSE, MAE - lower is better
+                rankings = sorted(
+                    [(name, results['models'][name]['cv_scores'].get(metric, {}).get('mean', float('inf'))) 
+                     for name in results['models'].keys()],
+                    key=lambda x: x[1] if x[1] != float('inf') else 0
+                )
+            
+            results['rankings'][metric] = rankings
+        
+        # Generate summary
+        results['summary'] = {
+            'total_models': len(models),
+            'best_model_overall': results['rankings'].get(metrics[0], [])[0][0] if results['rankings'] else None,
+            'average_training_time': np.mean([m['timing'].get('training_time', 0) for m in results['models'].values() if 'training_time' in m['timing']]),
+            'fastest_model': min([(name, m['timing'].get('training_time', float('inf'))) for name, m in results['models'].items() if 'training_time' in m['timing']], key=lambda x: x[1])[0] if any('training_time' in m['timing'] for m in results['models'].values()) else None
+        }
+        
+        # Generate insights
+        if results['summary']['best_model_overall']:
+            results['insights'].append(f"🏆 {results['summary']['best_model_overall']} is the best performing model overall")
+        
+        if results['summary']['fastest_model']:
+            results['insights'].append(f"⚡ {results['summary']['fastest_model']} is the fastest training model")
+        
+        # Performance analysis
+        cv_means = [m['cv_scores'].get(metrics[0], {}).get('mean', 0) for m in results['models'].values()]
+        if cv_means:
+            cv_std = np.std(cv_means)
+            if cv_std < 0.05:
+                results['insights'].append("📊 Models show consistent performance (low variance)")
+            elif cv_std > 0.1:
+                results['insights'].append("📊 Models show high performance variance - consider ensemble methods")
+        
+        # Save results
+        if save_results:
+            os.makedirs(output_dir, exist_ok=True)
+            import json
+            
+            # Make results JSON serializable
+            serializable_results = {}
+            for key, value in results.items():
+                if key == 'models':
+                    serializable_results[key] = {}
+                    for model_name, model_result in value.items():
+                        serializable_results[key][model_name] = {
+                            k: v for k, v in model_result.items() 
+                            if k not in ['model']
+                        }
+                else:
+                    serializable_results[key] = value
+            
+            with open(f"{output_dir}/performance_benchmark_results.json", 'w') as f:
+                json.dump(serializable_results, f, indent=2, default=str)
+            
+            print(f"💾 Benchmark results saved to: {output_dir}")
+        
+        print(f"✅ Performance benchmark completed for {len(models)} models")
+        return results
+        
+    except Exception as e:
+        print(f"❌ Performance benchmark failed: {e}")
+        return {"error": str(e)}
+
+
+

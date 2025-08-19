@@ -13,6 +13,9 @@ Version: 1.0.0
 # pulling heavy optional dependencies (e.g., matplotlib) during lightweight usage.
 _CORE_AVAILABLE = False
 
+# Import management
+from ._imports import check_dependencies
+
 # Pandas integration module
 from .pandas_integration import smart_group_analysis, smart_pivot_table, intelligent_merge
 
@@ -23,6 +26,72 @@ from .numpy_integration import auto_math_analysis
 from .ml_pipeline import auto_ml_pipeline
 from .feature_selection import smart_feature_selection
 from .model_selection import intelligent_model_selection
+from .feature_engineering import autofe_generate_features, leakage_guard_check
+from .fairness import fairness_mini_audit
+from .anomaly_explain import anomaly_explain
+
+# AutoML 2.0 & Advanced AI
+from .automl_v2 import (
+    intelligent_model_selection as automl_model_selection,
+    auto_hyperparameter_tuning,
+    explainable_ai as automl_explainable_ai,
+    continuous_learning,
+    meta_learning_framework
+)
+
+# Few-Shot & Zero-Shot Learning
+from .few_shot import (
+    few_shot_classification,
+    zero_shot_prediction,
+    transfer_learning,
+    domain_adaptation,
+    meta_learning_framework as few_shot_meta_learning
+)
+
+# Explainable AI
+from .explainable_ai import (
+    comprehensive_explanation,
+    shap_analysis,
+    decision_path_analysis,
+    feature_importance_analysis,
+    model_interpretability_assessment,
+    contrastive_explanations,
+)
+
+# Multimodal AI
+from .multimodal import (
+    multimodal_fusion,
+    cross_modal_analysis,
+    unified_embedding
+)
+
+# Neuro-Symbolic AI
+from .neuro_symbolic import (
+    hybrid_reasoning,
+    knowledge_graph_ai,
+    logical_constraints
+)
+
+# Generative AI
+from .generative import (
+    synthetic_data_generation,
+    ai_design_tools,
+    creative_intelligence
+)
+
+# Real-Time Streaming AI
+from .realtime_ai import (
+    real_time_analysis,
+    live_predictions,
+    streaming_anomaly_detection
+)
+
+# Federated Learning
+from .federated import (
+    privacy_preserving_ai,
+    secure_aggregation,
+    distributed_learning
+)
 
 # Dask integration module for big data processing
 from .dask_integration import smart_dask_analysis, distributed_compute, big_data_pipeline
@@ -67,12 +136,6 @@ _VIS_AVAILABLE = False
 
 # Utility modules with lazy loading
 from .utils import (
-    get_performance_utils,
-    get_big_data_utils,
-    get_gpu_utils,
-    get_cloud_utils,
-    get_validation_utils,
-    get_all_utils,
     get_utility_status,
     print_utility_status,
     get_available_features,
@@ -81,62 +144,10 @@ from .utils import (
     create_utility_report,
 )
 
-# New modular utilities
-from .performance import (
-    lazy_evaluate,
-    cache_result,
-    parallel_process,
-    chunked_process,
-    memory_optimize,
-    performance_profile,
-    benchmark_function,
-)
 
-from .big_data import (
-    process_large_file,
-    stream_data,
-    get_dask_status,
-    get_gpu_status,
-    get_memory_mapping_status,
-    get_distributed_status,
-    estimate_memory_usage,
-    get_system_memory_info,
-    check_memory_constraints,
-)
-
-from .cloud_integration import (
-    get_aws_status,
-    get_azure_status,
-    get_gcp_status,
-    upload_to_cloud,
-    download_from_cloud,
-    list_cloud_files,
-    process_cloud_data,
-)
-
-from .data_validation import (
-    validate_column_types,
-    check_data_quality,
-    clean_data,
-    validate_schema,
-    detect_anomalies,
-    validate_email_format,
-    validate_phone_format,
-    validate_date_format,
-)
 
 # Public API
 __all__ = [
-    # Core analysis functions
-    "analyze",
-    "get_data_info",
-    "analyze_numeric",
-    "analyze_categorical",
-    "detect_outliers",
-    "validate_dataframe",
-    "summary_stats",
-    "box_plots",
-    "create_interactive_plots",
     # Pandas integration functions
     "smart_group_analysis",
     "smart_pivot_table",
@@ -147,6 +158,57 @@ __all__ = [
     "auto_ml_pipeline",
     "smart_feature_selection",
     "intelligent_model_selection",
+    "autofe_generate_features",
+    "leakage_guard_check",
+    "fairness_mini_audit",
+    "anomaly_explain",
+    
+    # AutoML 2.0 & Advanced AI
+    "automl_model_selection",
+    "auto_hyperparameter_tuning",
+    "automl_explainable_ai",
+    "continuous_learning",
+    "meta_learning_framework",
+    
+    # Few-Shot & Zero-Shot Learning
+    "few_shot_classification",
+    "zero_shot_prediction",
+    "transfer_learning",
+    "domain_adaptation",
+    "few_shot_meta_learning",
+    
+    # Explainable AI
+    "comprehensive_explanation",
+    "shap_analysis",
+    "decision_path_analysis",
+    "feature_importance_analysis",
+    "model_interpretability_assessment",
+    "contrastive_explanations",
+    
+    # Multimodal AI
+    "multimodal_fusion",
+    "cross_modal_analysis",
+    "unified_embedding",
+    
+    # Neuro-Symbolic AI
+    "hybrid_reasoning",
+    "knowledge_graph_ai",
+    "logical_constraints",
+    
+    # Generative AI
+    "synthetic_data_generation",
+    "ai_design_tools",
+    "creative_intelligence",
+    
+    # Real-Time Streaming AI
+    "real_time_analysis",
+    "live_predictions",
+    "streaming_anomaly_detection",
+    
+    # Federated Learning
+    "privacy_preserving_ai",
+    "secure_aggregation",
+    "distributed_learning",
     # Dask integration functions for big data processing
     "smart_dask_analysis",
     "distributed_compute",
@@ -174,61 +236,18 @@ __all__ = [
     "memmap_array",
     "chunked_apply",
     "benchmark_backend",
-    # Visualization functions
-    "correlation_matrix",
-    "distribution_plots",
+
     # Utility functions
-    "get_performance_utils",
-    "get_big_data_utils",
-    "get_gpu_utils",
-    "get_cloud_utils",
-    "get_validation_utils",
-    "get_all_utils",
     "get_utility_status",
     "print_utility_status",
     "get_available_features",
     "check_dependencies",
     "get_system_info",
     "create_utility_report",
-    # Performance utilities
-    "lazy_evaluate",
-    "cache_result",
-    "parallel_process",
-    "chunked_process",
-    "memory_optimize",
-    "performance_profile",
-    "benchmark_function",
-    # Big data utilities
-    "process_large_file",
-    "stream_data",
-    "get_dask_status",
-    "get_gpu_status",
-    "get_memory_mapping_status",
-    "get_distributed_status",
-    "estimate_memory_usage",
-    "get_system_memory_info",
-    "check_memory_constraints",
-    # Cloud integration utilities
-    "get_aws_status",
-    "get_azure_status",
-    "get_gcp_status",
-    "upload_to_cloud",
-    "download_from_cloud",
-    "list_cloud_files",
-    "process_cloud_data",
-    # Data validation utilities
-    "validate_column_types",
-    "check_data_quality",
-    "clean_data",
-    "validate_schema",
-    "detect_anomalies",
-    "validate_email_format",
-    "validate_phone_format",
-    "validate_date_format",
 ]
 
 # Version information
-__version__ = "1.0.0"
+__version__ = "0.2.0"
 __author__ = "Eren A"
 __description__ = "Creative and Innovative Big Data Analysis Library"
 

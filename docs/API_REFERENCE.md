@@ -4,6 +4,11 @@
 
 QuickInsights is a Python library that provides creative and innovative analysis tools for large datasets.
 
+See also: Creative features overview in `docs/CREATIVE_FEATURES.md` for high-level descriptions and examples of:
+- `infer_constraints`
+- `drift_radar`
+- `contrastive_explanations`
+
 ## Installation
 
 ```bash
@@ -274,6 +279,23 @@ Validates data types of dataframe columns.
 **Returns:**
 - `dict`: Validation results
 
+### `infer_constraints(df, max_categories=25, detect_patterns=True)`
+
+Infers data constraints from example data (schema-by-example). Returns per-column dtype, nullability, uniqueness, cardinality, numeric stats, top categories, and pattern hints (email/phone/date). Also includes a compact `contract` dict for quick validation.
+
+**Returns:**
+- `dict`: Profile including `columns` and `contract`.
+
+### `drift_radar(base_df, current_df, bins=10, top_k_categories=20)`
+
+Detects schema and distribution drift between baseline and current datasets.
+
+- Numeric: PSI (Population Stability Index), optional KS-test if SciPy is available
+- Categorical: PSI over top-K categories, unseen/vanished category tracking
+
+**Returns:**
+- `dict`: Per-column drift metrics and `overall_risk` (low|medium|high)
+
 ### `check_data_quality(df)`
 
 Checks overall data quality.
@@ -399,3 +421,11 @@ corr = gpu_corrcoef(df.to_numpy())
 mmap = memmap_array('./quickinsights_output/tmp.mmap', 'float32', (1_000_000, 8))
 res = chunked_apply(lambda x: x.sum(), df.to_numpy(), chunk_rows=50_000)
 ```
+
+## Explainable AI Additions
+
+### `contrastive_explanations(model, X, y, index=0, k_neighbors=5, feature_names=None)`
+
+Generates a contrastive explanation for a single instance by finding a minimal directional change toward the opposite class using nearest neighbors. Works best for binary classification and degrades gracefully otherwise.
+
+Returns keys: `predicted_class`, `opposite_class`, `k_neighbors`, `mean_direction_norm`, `suggestions` (list of feature delta recommendations), and `performance`.

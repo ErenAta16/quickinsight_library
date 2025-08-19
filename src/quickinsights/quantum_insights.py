@@ -143,7 +143,7 @@ def quantum_anneal_optimize(
     param_grid: Dict[str, List[Any]],
     X: Union[pd.DataFrame, np.ndarray],
     y: Union[pd.Series, np.ndarray],
-    max_iters: int = 30,
+    max_iter: int = 30,  # Changed from max_iters to max_iter for consistency
     cv_folds: int = 3,
     random_state: int = 42,
 ) -> Dict[str, Any]:
@@ -153,6 +153,10 @@ def quantum_anneal_optimize(
     - At each step, proposes a neighbor by changing one parameter
     - Accepts improvements; accepts worse with small probability that decays over time
     """
+    # Input validation
+    if estimator is None:
+        return {"error": "Estimator cannot be None"}
+    
     from sklearn.model_selection import cross_val_score
     rng = np.random.default_rng(random_state)
 
@@ -190,7 +194,7 @@ def quantum_anneal_optimize(
     best_score = current_score
 
     # Annealing loop
-    for t in range(1, max_iters + 1):
+    for t in range(1, max_iter + 1):
         cand = neighbor(current)
         cand_score = score_cfg(cand)
         if cand_score >= current_score:
@@ -208,7 +212,7 @@ def quantum_anneal_optimize(
         "best_params": best,
         "best_score": float(best_score),
         "start_params": current,
-        "iterations": int(max_iters),
+        "iterations": int(max_iter),
     }
 
 

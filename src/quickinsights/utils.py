@@ -6,25 +6,152 @@ This module serves as a coordinator for the modular utility system.
 
 import os
 import sys
-from typing import Any, Dict, List, Optional, Union
+import time
+import json
+from typing import Any, Dict, List, Optional, Union, Callable
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
-# Import the new modular utilities
-from .performance import get_performance_utils
-from .big_data import get_big_data_utils
-from .cloud_integration import get_cloud_utils
-from .data_validation import get_validation_utils
+
 
 
 def get_gpu_utils():
     """Get GPU-related utility functions."""
     try:
-        from .big_data import get_gpu_status
-
-        return {"gpu_status": get_gpu_status()}
+        from .acceleration import gpu_available
+        return {"gpu_status": gpu_available()}
     except ImportError:
         return {"gpu_status": {"error": "GPU utilities not available"}}
+
+def create_output_directory(output_dir: str) -> str:
+    """Create output directory if it doesn't exist."""
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+        print(f"📁 Output directory created: {output_dir}")
+    return output_dir
+
+def save_results(results: Dict[str, Any], operation_name: str, output_dir: str = "./quickinsights_output") -> str:
+    """Save results to JSON file with timestamp."""
+    create_output_directory(output_dir)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{operation_name}_{timestamp}.json"
+    filepath = os.path.join(output_dir, filename)
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=2, default=str)
+    
+    print(f"💾 Results saved: {filepath}")
+    return filepath
+
+def measure_execution_time(func: Callable) -> Callable:
+    """Decorator to measure execution time of functions."""
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        return result, execution_time
+    return wrapper
+
+def validate_dataframe(df: Any) -> pd.DataFrame:
+    """Validate that input is a valid DataFrame."""
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("Input must be a pandas DataFrame")
+    if df.empty:
+        raise ValueError("DataFrame cannot be empty")
+    return df
+
+def get_data_info(df: pd.DataFrame) -> Dict[str, Any]:
+    """Get comprehensive information about a DataFrame."""
+    info = {
+        "shape": df.shape,
+        "dtypes": df.dtypes.to_dict(),
+        "memory_usage_mb": df.memory_usage(deep=True).sum() / 1024**2,
+        "missing_values": df.isnull().sum().to_dict(),
+        "missing_percentage": (df.isnull().sum() / len(df) * 100).to_dict(),
+        "numeric_columns": df.select_dtypes(include=[np.number]).columns.tolist(),
+        "categorical_columns": df.select_dtypes(include=["object", "category"]).columns.tolist(),
+        "datetime_columns": df.select_dtypes(include=["datetime64"]).columns.tolist(),
+        "unique_counts": {col: df[col].nunique() for col in df.columns},
+        "duplicate_rows": df.duplicated().sum(),
+        "duplicate_percentage": (df.duplicated().sum() / len(df)) * 100,
+    }
+    
+    # Add summary statistics for numeric columns
+    if len(info["numeric_columns"]) > 0:
+        numeric_df = df[info["numeric_columns"]]
+        info["numeric_summary"] = {
+            "mean": numeric_df.mean().to_dict(),
+            "median": numeric_df.median().to_dict(),
+            "std": numeric_df.std().to_dict(),
+            "min": numeric_df.min().to_dict(),
+            "max": numeric_df.max().to_dict(),
+        }
+    
+    return info
+
+def detect_outliers(df: pd.DataFrame, columns: Optional[List[str]] = None, method: str = 'iqr') -> Dict[str, Any]:
+    """Detect outliers in DataFrame columns."""
+    if columns is None:
+        columns = df.select_dtypes(include=[np.number]).columns.tolist()
+    
+    outliers = {}
+    
+    for col in columns:
+        if col in df.columns and df[col].dtype in ['int64', 'float64']:
+            Q1 = df[col].quantile(0.25)
+            Q3 = df[col].quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - 1.5 * IQR
+            upper_bound = Q3 + 1.5 * IQR
+            
+            outlier_mask = (df[col] < lower_bound) | (df[col] > upper_bound)
+            outlier_count = outlier_mask.sum()
+            outlier_percentage = (outlier_count / len(df)) * 100
+            
+            outliers[col] = {
+                'count': outlier_count,
+                'percentage': outlier_percentage,
+                'indices': df[outlier_mask].index.tolist(),
+                'values': df[outlier_mask][col].tolist()
+            }
+    
+    return outliers
+
+def get_correlation_strength(corr_value: float) -> str:
+    """Get correlation strength description based on correlation value."""
+    abs_corr = abs(corr_value)
+    
+    if abs_corr >= 0.8:
+        return "Çok Güçlü"
+    elif abs_corr >= 0.6:
+        return "Güçlü"
+    elif abs_corr >= 0.4:
+        return "Orta"
+    elif abs_corr >= 0.2:
+        return "Zayıf"
+    else:
+        return "Çok Zayıf"
+
+def make_json_serializable(obj: Any) -> Any:
+    """Convert numpy/pandas objects to JSON serializable format."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, pd.Series):
+        return obj.tolist()
+    elif isinstance(obj, pd.DataFrame):
+        return obj.to_dict('records')
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif pd.isna(obj):
+        return None
+    else:
+        return obj
 
 
 def create_output_directory(output_dir: str) -> str:

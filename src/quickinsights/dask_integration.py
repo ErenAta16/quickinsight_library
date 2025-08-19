@@ -5,7 +5,7 @@ Focused on big data processing and distributed computing
 
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, List, Optional, Union, Callable
+from typing import Dict, Any, List, Optional, Union, Callable, Tuple
 import time
 import os
 
@@ -29,7 +29,7 @@ class DaskIntegration:
         
     def smart_dask_analysis(
         self,
-        data: Union[pd.DataFrame, str, dd.DataFrame],
+        data: Union[pd.DataFrame, str, "dd.DataFrame"],
         analysis_type: str = 'auto',
         chunk_size: Optional[str] = None,
         n_workers: int = 4,
@@ -296,10 +296,65 @@ class DaskIntegration:
             self.cluster.close()
             self.cluster = None
     
-    def _prepare_dask_data(self, data: Union[pd.DataFrame, str, dd.DataFrame], 
-                           chunk_size: Optional[str]) -> dd.DataFrame:
+    def distributed_compute(self, data, custom_function, chunk_size=1000, n_workers=4, 
+                           memory_limit='2GB', output_dir='./quickinsights_output'):
+        """Execute custom function in parallel across Dask workers"""
+        if not self.dask_available:
+            return {
+                'error': 'Dask not available. Install with: pip install dask[complete]',
+                'dask_available': False
+            }
+        
+        start_time = time.time()
+        
+        try:
+            # Setup Dask client
+            self._setup_dask_client(n_workers, memory_limit)
+            
+            # Convert to Dask DataFrame if needed
+            if isinstance(data, pd.DataFrame):
+                dask_df = dd.from_pandas(data, npartitions=max(1, len(data) // chunk_size))
+            else:
+                dask_df = data
+            
+            # Apply custom function to each partition
+            results = dask_df.map_partitions(custom_function).compute()
+            
+            execution_time = time.time() - start_time
+            
+            # Save results if output directory specified
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
+                import json
+                with open(f"{output_dir}/distributed_compute_results.json", 'w') as f:
+                    json.dump({
+                        'results': str(results),
+                        'execution_time': execution_time,
+                        'n_workers': n_workers,
+                        'chunk_size': chunk_size
+                    }, f, indent=2, default=str)
+            
+            return {
+                'results': results,
+                'execution_time': execution_time,
+                'n_workers': n_workers,
+                'chunk_size': chunk_size,
+                'success': True
+            }
+            
+        except Exception as e:
+            return {
+                'error': str(e),
+                'execution_time': time.time() - start_time,
+                'dask_available': True
+            }
+        finally:
+            self._cleanup_dask_client()
+    
+    def _prepare_dask_data(self, data: Union[pd.DataFrame, str, "dd.DataFrame"],
+        chunk_size: Optional[str]) -> "dd.DataFrame":
         """Prepare Dask DataFrame from various input types"""
-        if isinstance(data, dd.DataFrame):
+        if isinstance(data, "dd.DataFrame"):
             return data
         
         if isinstance(data, str):
@@ -317,11 +372,11 @@ class DaskIntegration:
         
         raise ValueError(f"Unsupported data type: {type(data)}")
     
-    def _detect_optimal_analysis(self, dask_df: dd.DataFrame) -> str:
+    def _detect_optimal_analysis(self, dask_df: "dd.DataFrame") -> str:
         """Detect optimal analysis type. For stability, prefer 'descriptive' by default."""
         return 'descriptive'
 
-    def _safe_head_df(self, dask_df: dd.DataFrame, columns: List[str], n: int = 50000) -> pd.DataFrame:
+    def _safe_head_df(self, dask_df: "dd.DataFrame", columns: List[str], n: int = 50000) -> pd.DataFrame:
         """Safely fetch up to n rows from the first non-empty partition as a Pandas DataFrame.
         Avoids dask_expr head-optimization path that can trigger ambiguous truth errors.
         """
@@ -353,7 +408,7 @@ class DaskIntegration:
                 return first.head(n)
             return first
     
-    def _perform_dask_analysis(self, dask_df: dd.DataFrame, analysis_type: str) -> Dict[str, Any]:
+    def _perform_dask_analysis(self, dask_df: "dd.DataFrame", analysis_type: str) -> Dict[str, Any]:
         """Perform specific type of Dask analysis"""
         if analysis_type == 'descriptive':
             return self._descriptive_analysis(dask_df)
@@ -364,7 +419,7 @@ class DaskIntegration:
         else:
             return {'error': f'Unknown analysis type: {analysis_type}'}
     
-    def _descriptive_analysis(self, dask_df: dd.DataFrame) -> Dict[str, Any]:
+    def _descriptive_analysis(self, dask_df: "dd.DataFrame") -> Dict[str, Any]:
         """Perform descriptive statistics analysis"""
         numeric_cols = dask_df.select_dtypes(include=[np.number]).columns
         
@@ -385,7 +440,7 @@ class DaskIntegration:
             'npartitions': dask_df.npartitions
         }
     
-    def _correlation_analysis(self, dask_df: dd.DataFrame) -> Dict[str, Any]:
+    def _correlation_analysis(self, dask_df: "dd.DataFrame") -> Dict[str, Any]:
         """Perform correlation analysis robustly via sampling and NumPy."""
         numeric_cols = dask_df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) < 2:
@@ -416,7 +471,7 @@ class DaskIntegration:
             'npartitions': dask_df.npartitions
         }
     
-    def _groupby_analysis(self, dask_df: dd.DataFrame) -> Dict[str, Any]:
+    def _groupby_analysis(self, dask_df: "dd.DataFrame") -> Dict[str, Any]:
         """Perform groupby analysis"""
         # Find categorical columns for grouping
         categorical_cols = dask_df.select_dtypes(include=['object', 'category']).columns
@@ -444,7 +499,7 @@ class DaskIntegration:
             'npartitions': dask_df.npartitions
         }
     
-    def _apply_dask_operation(self, dask_df: dd.DataFrame, op_type: str, 
+    def _apply_dask_operation(self, dask_df: "dd.DataFrame", op_type: str, 
                              params: Dict[str, Any]) -> Dict[str, Any]:
         """Apply specific Dask operation"""
         try:
@@ -498,7 +553,7 @@ class DaskIntegration:
         with open(f"{output_dir}/dask_analysis_results.json", 'w') as f:
             json.dump(serializable_results, f, indent=2, default=str)
     
-    def _save_intermediate_result(self, dask_df: dd.DataFrame, operation_name: str, output_dir: str):
+    def _save_intermediate_result(self, dask_df: "dd.DataFrame", operation_name: str, output_dir: str):
         """Save intermediate pipeline result"""
         os.makedirs(output_dir, exist_ok=True)
         
@@ -526,6 +581,73 @@ class DaskIntegration:
             print(f"💾 Saved intermediate result: {output_path}")
         except Exception as e:
             print(f"⚠️  Could not save intermediate result: {e}")
+    
+    def big_data_pipeline(self, operations: List[Tuple[str, Callable]], data_source: Union[pd.DataFrame, str],
+                          chunk_size: Optional[str] = None, n_workers: int = 4, memory_limit: str = '2GB',
+                          save_intermediate: bool = False, output_dir: str = './quickinsights_output') -> Dict[str, Any]:
+        """Execute a chain of big data operations with intermediate result saving."""
+        if not self.dask_available:
+            return {
+                'error': 'Dask not available. Install with: pip install dask[complete]',
+                'dask_available': False
+            }
+        
+        start_time = time.time()
+        
+        try:
+            # Setup Dask client
+            self._setup_dask_client(n_workers, memory_limit)
+            
+            # Load data
+            dask_df = self._prepare_dask_data(data_source, chunk_size)
+            
+            # Apply operations pipeline
+            pipeline_results = []
+            current_df = dask_df
+            
+            for i, (op_name, op_func) in enumerate(operations):
+                print(f"🔄 Applying {op_name}...")
+                
+                # Apply operation directly
+                try:
+                    current_df = op_func(current_df)
+                    pipeline_results.append({
+                        'operation': op_name,
+                        'success': True
+                    })
+                except Exception as e:
+                    return {'error': f'Pipeline failed at {op_name}: {str(e)}'}
+                
+                # Save intermediate if requested
+                if save_intermediate:
+                    self._save_intermediate_result(current_df, op_name, output_dir)
+            
+            # Final computation
+            final_result = current_df.compute()
+            
+            execution_time = time.time() - start_time
+            
+            results = {
+                'pipeline_operations': pipeline_results,
+                'final_result': final_result,
+                'performance': {
+                    'execution_time': execution_time,
+                    'n_operations': len(operations),
+                    'n_workers': n_workers,
+                    'chunk_size': chunk_size
+                }
+            }
+            
+            return results
+            
+        except Exception as e:
+            return {
+                'error': str(e),
+                'execution_time': time.time() - start_time,
+                'dask_available': True
+            }
+        finally:
+            self._cleanup_dask_client()
 
 # Convenience functions
 def smart_dask_analysis(*args, **kwargs):
