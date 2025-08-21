@@ -128,11 +128,32 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# QuickInsights specific
-quickinsights_output/
-src/quickinsights/quickinsights_output/
-test_output/
-.benchmarks/
+# Test and development files
+test_data.csv
+analysis_output/
+models/
+*.pkl
+*.joblib
 
-# PyPI configuration (contains API tokens)
+# PyPI configuration
 .pypirc
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project specific
+examples/beginner_guide_example.py
+examples/comprehensive_project.py
+examples/setup_beginner.py
+examples/README_BEGINNER.md
+examples/README_COMPREHENSIVE.md
+project_report.*
+dashboard/
