@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 import numpy as np
 import pandas as pd
 
-# Optional ML libraries
+# Optional ML libraries - lazy loading
 _ML_LIBS = {}
 
 def get_sklearn_utils():
@@ -50,6 +50,7 @@ def get_sklearn_utils():
             
             _ML_LIBS['sklearn'] = {
                 'available': True,
+                'version': 'loaded',
                 'GridSearchCV': GridSearchCV,
                 'RandomizedSearchCV': RandomizedSearchCV,
                 'cross_val_score': cross_val_score,
@@ -90,8 +91,12 @@ def get_sklearn_utils():
                 'PCA': PCA,
                 'silhouette_score': silhouette_score
             }
-        except ImportError:
-            _ML_LIBS['sklearn'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['sklearn'] = {
+                'available': False, 
+                'error': str(e),
+                'version': None
+            }
     
     return _ML_LIBS['sklearn']
 
@@ -102,18 +107,20 @@ def get_torch_utils():
             import torch
             import torch.nn as nn
             import torch.optim as optim
-            from torch.utils.data import DataLoader, TensorDataset
             
             _ML_LIBS['torch'] = {
                 'available': True,
+                'version': torch.__version__,
                 'torch': torch,
                 'nn': nn,
-                'optim': optim,
-                'DataLoader': DataLoader,
-                'TensorDataset': TensorDataset
+                'optim': optim
             }
-        except ImportError:
-            _ML_LIBS['torch'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['torch'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
     return _ML_LIBS['torch']
 
@@ -122,12 +129,19 @@ def get_lightgbm_utils():
     if 'lightgbm' not in _ML_LIBS:
         try:
             import lightgbm as lgb
+            
             _ML_LIBS['lightgbm'] = {
                 'available': True,
-                'lgb': lgb
+                'version': lgb.__version__,
+                'LGBMClassifier': lgb.LGBMClassifier,
+                'LGBMRegressor': lgb.LGBMRegressor
             }
-        except ImportError:
-            _ML_LIBS['lightgbm'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['lightgbm'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
     return _ML_LIBS['lightgbm']
 
@@ -136,12 +150,19 @@ def get_xgboost_utils():
     if 'xgboost' not in _ML_LIBS:
         try:
             import xgboost as xgb
+            
             _ML_LIBS['xgboost'] = {
                 'available': True,
-                'xgb': xgb
+                'version': xgb.__version__,
+                'XGBClassifier': xgb.XGBClassifier,
+                'XGBRegressor': xgb.XGBRegressor
             }
-        except ImportError:
-            _ML_LIBS['xgboost'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['xgboost'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
     return _ML_LIBS['xgboost']
 
@@ -150,59 +171,41 @@ def get_shap_utils():
     if 'shap' not in _ML_LIBS:
         try:
             import shap
+            
             _ML_LIBS['shap'] = {
                 'available': True,
-                'shap': shap
+                'version': shap.__version__,
+                'TreeExplainer': shap.TreeExplainer,
+                'LinearExplainer': shap.LinearExplainer,
+                'summary_plot': shap.summary_plot,
+                'waterfall_plot': shap.waterfall_plot
             }
-        except ImportError:
-            _ML_LIBS['shap'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['shap'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
     return _ML_LIBS['shap']
-
-def get_scipy_utils():
-    """Get SciPy utilities if available."""
-    if 'scipy' not in _ML_LIBS:
-        try:
-            from scipy import stats
-            _ML_LIBS['scipy'] = {
-                'available': True,
-                'stats': stats
-            }
-        except ImportError:
-            _ML_LIBS['scipy'] = {'available': False}
-    
-    return _ML_LIBS['scipy']
-
-def get_dask_utils():
-    """Get Dask utilities if available."""
-    if 'dask' not in _ML_LIBS:
-        try:
-            import dask.dataframe as dd
-            import dask.array as da
-            from dask.distributed import Client
-            
-            _ML_LIBS['dask'] = {
-                'available': True,
-                'dd': dd,
-                'da': da,
-                'Client': Client
-            }
-        except ImportError:
-            _ML_LIBS['dask'] = {'available': False}
-    
-    return _ML_LIBS['dask']
 
 def get_cupy_utils():
     """Get CuPy utilities if available."""
     if 'cupy' not in _ML_LIBS:
         try:
             import cupy as cp
+            
             _ML_LIBS['cupy'] = {
                 'available': True,
-                'cp': cp
+                'version': cp.__version__,
+                'cupy': cp
             }
-        except ImportError:
-            _ML_LIBS['cupy'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['cupy'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
     return _ML_LIBS['cupy']
 
@@ -210,103 +213,108 @@ def get_qiskit_utils():
     """Get Qiskit utilities if available."""
     if 'qiskit' not in _ML_LIBS:
         try:
-            from qiskit import QuantumCircuit, Aer, execute
-            from qiskit.quantum_info import Statevector
-            from qiskit.algorithms.optimizers import SPSA
+            import qiskit
             
             _ML_LIBS['qiskit'] = {
                 'available': True,
-                'QuantumCircuit': QuantumCircuit,
-                'Aer': Aer,
-                'execute': execute,
-                'Statevector': Statevector,
-                'SPSA': SPSA
+                'version': qiskit.__version__,
+                'qiskit': qiskit
             }
-        except ImportError:
-            _ML_LIBS['qiskit'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['qiskit'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
     return _ML_LIBS['qiskit']
 
-def get_plotting_utils():
-    """Get plotting utilities if available."""
-    if 'plotting' not in _ML_LIBS:
+def get_dask_utils():
+    """Get Dask utilities if available."""
+    if 'dask' not in _ML_LIBS:
         try:
-            import matplotlib.pyplot as plt
-            import seaborn as sns
-            import plotly.graph_objects as go
-            import plotly.express as px
+            import dask.dataframe as dd
+            import dask.array as da
             
-            _ML_LIBS['plotting'] = {
+            _ML_LIBS['dask'] = {
                 'available': True,
-                'plt': plt,
-                'sns': sns,
-                'go': go,
-                'px': px
+                'version': 'loaded',
+                'DataFrame': dd,
+                'Array': da
             }
-        except ImportError:
-            _ML_LIBS['plotting'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['dask'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
-    return _ML_LIBS['plotting']
+    return _ML_LIBS['dask']
 
-def get_cloud_utils():
-    """Get cloud utilities if available."""
-    if 'cloud' not in _ML_LIBS:
-        cloud_utils = {}
-        
+def get_scipy_utils():
+    """Get SciPy utilities if available."""
+    if 'scipy' not in _ML_LIBS:
         try:
-            import boto3
-            cloud_utils['boto3'] = boto3
-        except ImportError:
-            pass
-        
-        try:
-            from azure.storage.blob import BlobServiceClient
-            cloud_utils['azure'] = BlobServiceClient
-        except ImportError:
-            pass
-        
-        try:
-            from google.cloud import storage
-            cloud_utils['gcp'] = storage
-        except ImportError:
-            pass
-        
-        _ML_LIBS['cloud'] = {
-            'available': len(cloud_utils) > 0,
-            'utils': cloud_utils
-        }
-    
-    return _ML_LIBS['cloud']
-
-def get_profiling_utils():
-    """Get profiling utilities if available."""
-    if 'profiling' not in _ML_LIBS:
-        try:
-            import psutil
-            _ML_LIBS['profiling'] = {
+            from scipy import stats
+            
+            _ML_LIBS['scipy'] = {
                 'available': True,
-                'psutil': psutil
+                'version': 'loaded',
+                'stats': stats
             }
-        except ImportError:
-            _ML_LIBS['profiling'] = {'available': False}
+        except ImportError as e:
+            _ML_LIBS['scipy'] = {
+                'available': False,
+                'error': str(e),
+                'version': None
+            }
     
-    return _ML_LIBS['profiling']
+    return _ML_LIBS['scipy']
 
-# Convenience function to check all dependencies
 def check_dependencies() -> Dict[str, bool]:
     """Check availability of all optional dependencies."""
     deps = {}
-    deps['sklearn'] = get_sklearn_utils()['available']
-    deps['torch'] = get_torch_utils()['available']
-    deps['lightgbm'] = get_lightgbm_utils()['available']
-    deps['xgboost'] = get_xgboost_utils()['available']
-    deps['shap'] = get_shap_utils()['available']
-    deps['scipy'] = get_scipy_utils()['available']
-    deps['dask'] = get_dask_utils()['available']
-    deps['cupy'] = get_cupy_utils()['available']
-    deps['qiskit'] = get_qiskit_utils()['available']
-    deps['plotting'] = get_plotting_utils()['available']
-    deps['cloud'] = get_cloud_utils()['available']
-    deps['profiling'] = get_profiling_utils()['available']
+    
+    # Check ML libraries
+    sklearn_status = get_sklearn_utils()
+    deps['sklearn'] = sklearn_status['available']
+    
+    torch_status = get_torch_utils()
+    deps['torch'] = torch_status['available']
+    
+    lightgbm_status = get_lightgbm_utils()
+    deps['lightgbm'] = lightgbm_status['available']
+    
+    xgboost_status = get_xgboost_utils()
+    deps['xgboost'] = xgboost_status['available']
+    
+    shap_status = get_shap_utils()
+    deps['shap'] = shap_status['available']
+    
+    cupy_status = get_cupy_utils()
+    deps['cupy'] = cupy_status['available']
+    
+    qiskit_status = get_qiskit_utils()
+    deps['qiskit'] = qiskit_status['available']
+    
+    dask_status = get_dask_utils()
+    deps['dask'] = dask_status['available']
+    
+    scipy_status = get_scipy_utils()
+    deps['scipy'] = scipy_status['available']
     
     return deps
+
+def get_dependency_info() -> Dict[str, Dict[str, Any]]:
+    """Get detailed information about all dependencies."""
+    return {
+        'sklearn': get_sklearn_utils(),
+        'torch': get_torch_utils(),
+        'lightgbm': get_lightgbm_utils(),
+        'xgboost': get_xgboost_utils(),
+        'shap': get_shap_utils(),
+        'cupy': get_cupy_utils(),
+        'qiskit': get_qiskit_utils(),
+        'dask': get_dask_utils(),
+        'scipy': get_scipy_utils()
+    }

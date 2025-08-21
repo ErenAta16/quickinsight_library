@@ -6,237 +6,127 @@ providing creative insights, performance optimizations, and innovative features 
 large and small datasets.
 
 Author: Eren Ata
-Version: 1.0.0
+Version: 0.2.1
 """
 
 # Core modules are intentionally NOT imported at package import time to avoid
 # pulling heavy optional dependencies (e.g., matplotlib) during lightweight usage.
 _CORE_AVAILABLE = False
 
-# Import management
+# Import management - only essential utilities
 from ._imports import check_dependencies
 
-# Pandas integration module
-from .pandas_integration import smart_group_analysis, smart_pivot_table, intelligent_merge
+# Core functionality - expose essential functions with lazy loading
+def _get_core_functions():
+    """Get core functions when needed."""
+    from .core import analyze, analyze_numeric, analyze_categorical, validate_dataframe
+    from .utils import get_data_info, detect_outliers, create_output_directory
+    return analyze, analyze_numeric, analyze_categorical, validate_dataframe, get_data_info, detect_outliers, create_output_directory
 
-# NumPy integration module
-from .numpy_integration import auto_math_analysis
+# Quick Insights - instant data understanding
+def _get_quick_insights():
+    """Get quick insights functions when needed."""
+    from .quick_insights import quick_insight, optimize_for_speed
+    return quick_insight, optimize_for_speed
 
-# Scikit-learn ML integration modules
-from .ml_pipeline import auto_ml_pipeline
-from .feature_selection import smart_feature_selection
-from .model_selection import intelligent_model_selection
-from .feature_engineering import autofe_generate_features, leakage_guard_check
-from .fairness import fairness_mini_audit
-from .anomaly_explain import anomaly_explain
+# Smart Data Cleaning - automated data cleaning
+def _get_smart_cleaner():
+    """Get smart cleaner functions when needed."""
+    from .smart_cleaner import smart_clean, analyze_data_quality, SmartCleaner
+    return smart_clean, analyze_data_quality, SmartCleaner
 
-# AutoML 2.0 & Advanced AI
-from .automl_v2 import (
-    intelligent_model_selection as automl_model_selection,
-    auto_hyperparameter_tuning,
-    explainable_ai as automl_explainable_ai,
-    continuous_learning,
-    meta_learning_framework
-)
+# Easy Start - beginner-friendly interface
+def _get_easy_start():
+    """Get easy start functions when needed."""
+    from .easy_start import (
+        easy_load_data, easy_analyze, easy_clean, easy_visualize, easy_export, easy_summary,
+        load_data, analyze, clean, visualize, export, summary  # aliases
+    )
+    return easy_load_data, easy_analyze, easy_clean, easy_visualize, easy_export, easy_summary, load_data, clean, visualize, export, summary
 
-# Few-Shot & Zero-Shot Learning
-from .few_shot import (
-    few_shot_classification,
-    zero_shot_prediction,
-    transfer_learning,
-    domain_adaptation,
-    meta_learning_framework as few_shot_meta_learning
-)
+# Dashboard - interactive reporting
+def _get_dashboard():
+    """Get dashboard functions when needed."""
+    from .dashboard import create_dashboard, DashboardGenerator
+    return create_dashboard, DashboardGenerator
 
-# Explainable AI
-from .explainable_ai import (
-    comprehensive_explanation,
-    shap_analysis,
-    decision_path_analysis,
-    feature_importance_analysis,
-    model_interpretability_assessment,
-    contrastive_explanations,
-)
+# Utility functions that are always available
+def get_utility_status():
+    """Get status of all utility functions."""
+    from .utils import get_utility_status as _get_status
+    return _get_status()
 
-# Multimodal AI
-from .multimodal import (
-    multimodal_fusion,
-    cross_modal_analysis,
-    unified_embedding
-)
+def print_utility_status():
+    """Print status of all utility functions."""
+    from .utils import print_utility_status as _print_status
+    return _print_status()
 
-# Neuro-Symbolic AI
-from .neuro_symbolic import (
-    hybrid_reasoning,
-    knowledge_graph_ai,
-    logical_constraints
-)
+def get_available_features():
+    """Get list of available features."""
+    from .utils import get_available_features as _get_features
+    return _get_features()
 
-# Generative AI
-from .generative import (
-    synthetic_data_generation,
-    ai_design_tools,
-    creative_intelligence
-)
+def check_dependencies():
+    """Check availability of all optional dependencies."""
+    from ._imports import check_dependencies as _check_deps
+    return _check_deps()
 
-# Real-Time Streaming AI
-from .realtime_ai import (
-    real_time_analysis,
-    live_predictions,
-    streaming_anomaly_detection
-)
+def get_system_info():
+    """Get system information."""
+    from .utils import get_system_info as _get_sys_info
+    return _get_sys_info()
 
-# Federated Learning
-from .federated import (
-    privacy_preserving_ai,
-    secure_aggregation,
-    distributed_learning
-)
+def create_utility_report():
+    """Create utility report."""
+    from .utils import create_utility_report as _create_report
+    return _create_report()
 
-# Dask integration module for big data processing
-from .dask_integration import smart_dask_analysis, distributed_compute, big_data_pipeline
+# Lazy loading decorator
+def lazy_import(func_name):
+    """Decorator for lazy loading of functions."""
+    def wrapper(*args, **kwargs):
+        # Import the function when first called
+        if func_name == 'analyze':
+            analyze, _, _, _, _, _, _ = _get_core_functions()
+            return analyze(*args, **kwargs)
+        elif func_name == 'quick_insight':
+            quick_insight, _ = _get_quick_insights()
+            return quick_insight(*args, **kwargs)
+        elif func_name == 'smart_clean':
+            smart_clean, _, _ = _get_smart_cleaner()
+            return smart_clean(*args, **kwargs)
+        elif func_name == 'easy_load_data':
+            easy_load_data, _, _, _, _, _, _, _, _, _, _, _ = _get_easy_start()
+            return easy_load_data(*args, **kwargs)
+        elif func_name == 'create_dashboard':
+            create_dashboard, _ = _get_dashboard()
+            return create_dashboard(*args, **kwargs)
+        else:
+            raise AttributeError(f"Function {func_name} not found")
+    return wrapper
 
-# Neural-inspired pattern mining
-from .neural_patterns import (
-    neural_pattern_mining,
-    autoencoder_anomaly_scores,
-    sequence_signature_extract,
-)
-
-# Quantum-inspired utilities
-from .quantum_insights import (
-    quantum_superposition_sample,
-    amplitude_pca,
-    quantum_correlation_map,
-    quantum_anneal_optimize,
-)
-
-# Holographic-style visualization helpers (lightweight, no heavy deps required)
-from .holographic_viz import (
-    embed_3d_projection,
-    volumetric_density_plot,
-    export_vr_scene_stub,
-    plotly_embed_3d,
-)
-
-# Acceleration utilities (GPU/Memory)
-from .acceleration import (
-    gpu_available,
-    get_array_backend,
-    standardize_array,
-    backend_dot,
-    gpu_corrcoef,
-    memmap_array,
-    chunked_apply,
-    benchmark_backend,
-)
-
-# Visualizer is intentionally NOT imported at package import time to avoid heavy deps.
-_VIS_AVAILABLE = False
-
-# Utility modules with lazy loading
-from .utils import (
-    get_utility_status,
-    print_utility_status,
-    get_available_features,
-    check_dependencies,
-    get_system_info,
-    create_utility_report,
-)
-
-
-
-# Public API
+# Public API with lazy loading
 __all__ = [
-    # Pandas integration functions
-    "smart_group_analysis",
-    "smart_pivot_table",
-    "intelligent_merge",
-    # NumPy integration functions
-    "auto_math_analysis",
-    # Scikit-learn ML integration functions
-    "auto_ml_pipeline",
-    "smart_feature_selection",
-    "intelligent_model_selection",
-    "autofe_generate_features",
-    "leakage_guard_check",
-    "fairness_mini_audit",
-    "anomaly_explain",
-    
-    # AutoML 2.0 & Advanced AI
-    "automl_model_selection",
-    "auto_hyperparameter_tuning",
-    "automl_explainable_ai",
-    "continuous_learning",
-    "meta_learning_framework",
-    
-    # Few-Shot & Zero-Shot Learning
-    "few_shot_classification",
-    "zero_shot_prediction",
-    "transfer_learning",
-    "domain_adaptation",
-    "few_shot_meta_learning",
-    
-    # Explainable AI
-    "comprehensive_explanation",
-    "shap_analysis",
-    "decision_path_analysis",
-    "feature_importance_analysis",
-    "model_interpretability_assessment",
-    "contrastive_explanations",
-    
-    # Multimodal AI
-    "multimodal_fusion",
-    "cross_modal_analysis",
-    "unified_embedding",
-    
-    # Neuro-Symbolic AI
-    "hybrid_reasoning",
-    "knowledge_graph_ai",
-    "logical_constraints",
-    
-    # Generative AI
-    "synthetic_data_generation",
-    "ai_design_tools",
-    "creative_intelligence",
-    
-    # Real-Time Streaming AI
-    "real_time_analysis",
-    "live_predictions",
-    "streaming_anomaly_detection",
-    
-    # Federated Learning
-    "privacy_preserving_ai",
-    "secure_aggregation",
-    "distributed_learning",
-    # Dask integration functions for big data processing
-    "smart_dask_analysis",
-    "distributed_compute",
-    "big_data_pipeline",
-    # Neural-inspired
-    "neural_pattern_mining",
-    "autoencoder_anomaly_scores",
-    "sequence_signature_extract",
-    # Quantum-inspired
-    "quantum_superposition_sample",
-    "amplitude_pca",
-    "quantum_correlation_map",
-    "quantum_anneal_optimize",
-    # Holographic viz
-    "embed_3d_projection",
-    "volumetric_density_plot",
-    "export_vr_scene_stub",
-    "plotly_embed_3d",
-    # Acceleration
-    "gpu_available",
-    "get_array_backend",
-    "standardize_array",
-    "backend_dot",
-    "gpu_corrcoef",
-    "memmap_array",
-    "chunked_apply",
-    "benchmark_backend",
-
+    # Core functions - most important for users
+    "analyze",
+    "analyze_numeric", 
+    "analyze_categorical",
+    "validate_dataframe",
+    "get_data_info",
+    "detect_outliers",
+    "create_output_directory",
+    # Quick Insights
+    "quick_insight",
+    "optimize_for_speed",
+    # Smart Cleaning
+    "smart_clean",
+    "analyze_data_quality",
+    "SmartCleaner",
+    # Easy Start - Beginner Friendly
+    "easy_load_data", "easy_analyze", "easy_clean", "easy_visualize", "easy_export", "easy_summary",
+    "load_data", "clean", "visualize", "export", "summary",  # convenient aliases
+    # Dashboard
+    "create_dashboard", "DashboardGenerator",
     # Utility functions
     "get_utility_status",
     "print_utility_status",
@@ -247,8 +137,8 @@ __all__ = [
 ]
 
 # Version information
-__version__ = "0.2.0"
-__author__ = "Eren A"
+__version__ = "0.2.1"
+__author__ = "Eren Ata"
 __description__ = "Creative and Innovative Big Data Analysis Library"
 
 # Avoid side effects and printing at import time
