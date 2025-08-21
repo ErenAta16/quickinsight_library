@@ -21,8 +21,11 @@ transformers>=4.0.0
 # Quantum Computing
 qiskit>=0.40.0
 
-# GPU acceleration (optional)
-cupy-cuda11x>=10.0.0; sys_platform != 'win32'
+# GPU acceleration (platform-specific)
+# Windows users: install cupy-cuda12x manually if needed
+# Linux/Mac users: install cupy-cuda11x or cupy-cuda12x
+# cupy-cuda11x>=10.0.0; sys_platform != 'win32'
+# cupy-cuda12x>=12.0.0; sys_platform == 'win32'
 
 # Cloud integration (optional)
 boto3>=1.26.0

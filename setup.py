@@ -41,7 +41,6 @@ setup(
         "torch>=1.9.0",
         "transformers>=4.0.0",
         "qiskit>=0.40.0",
-        "cupy-cuda11x>=10.0.0; sys_platform != 'win32'",
     ],
     extras_require={
         "fast": [
@@ -49,8 +48,10 @@ setup(
             "dask[complete]>=2022.1.0",
         ],
         "gpu": [
-            "cupy-cuda11x>=10.0.0",
             "torch>=1.9.0",
+            "cupy-cuda11x>=10.0.0; sys_platform != 'win32'",
+            "cupy-cuda12x>=12.0.0; sys_platform == 'win32'",
+            "cupy-cuda12x>=12.0.0; platform_machine == 'x86_64' and sys_platform == 'win32'",
         ],
         "ml": [
             "scikit-learn>=1.0.0",
