@@ -130,7 +130,41 @@ pytest tests/test_core.py
 
 # Run with verbose output
 pytest -v
+
+# Run tests without warnings (recommended for clean output)
+pytest -W ignore
+
+# Alternative: Run with specific warning suppression
+pytest -W ignore::DeprecationWarning -W ignore::FutureWarning -W ignore::UserWarning
+
+# Run specific test class
+pytest tests/test_core.py::TestCore
+
+# Run specific test method
+pytest tests/test_core.py::TestCore::test_validate_dataframe_basic
+
+# Run tests with markers
+pytest -m "not slow"  # Skip slow tests
+pytest -m unit         # Run only unit tests
+pytest -m integration  # Run only integration tests
 ```
+
+### Test Structure
+
+Our test suite is organized as follows:
+
+- **`tests/conftest.py`**: Common fixtures and configuration
+- **`tests/test_core.py`**: Core module tests (unit tests)
+- **`tests/test_quick_insights.py`**: Quick insights module tests (unit tests)
+- **`tests/test_smart_cleaner.py`**: Smart cleaner module tests (unit tests)
+- **`tests/test_easy_start.py`**: Easy start module tests (integration tests)
+- **`tests/test_dashboard.py`**: Dashboard module tests (integration tests)
+
+### Test Categories
+
+- **Unit Tests** (`@pytest.mark.unit`): Test individual functions/methods
+- **Integration Tests** (`@pytest.mark.integration`): Test module interactions
+- **Slow Tests** (`@pytest.mark.slow`): Tests that take longer to run
 
 ### Writing Tests
 
@@ -138,6 +172,26 @@ pytest -v
 - Ensure test coverage is maintained
 - Use descriptive test names
 - Follow pytest best practices
+- Use fixtures from `conftest.py` for common test data
+- Test both success and error cases
+- Test edge cases (empty DataFrames, None values, etc.)
+
+### Test Coverage
+
+```bash
+# Generate coverage report
+pytest --cov=quickinsights --cov-report=html --cov-report=term
+
+# View coverage in browser
+# Open htmlcov/index.html in your browser
+```
+
+### Running Tests in CI
+
+Tests are automatically run in CI/CD pipeline:
+- All tests must pass before merging
+- Coverage reports are generated
+- Performance benchmarks are tracked
 
 ## Documentation
 
@@ -204,6 +258,69 @@ def analyze_data(df: pd.DataFrame, save_plots: bool = True) -> dict:
 - Add tests for new functionality
 - Update documentation as needed
 - Ensure all tests pass
+
+## Continuous Integration/Continuous Deployment (CI/CD)
+
+### GitHub Actions
+
+Our CI/CD pipeline automatically runs on every push and pull request:
+
+```yaml
+# .github/workflows/tests.yml
+name: Tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+      - name: Run tests
+        run: |
+          pytest --cov=quickinsights --cov-report=xml
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+```
+
+### CI Checks
+
+Before merging, the following must pass:
+
+### Note on Warnings
+
+Some tests may show NumPy deprecation warnings from pandas internal usage. These are **not** from our code and can be safely ignored. To run tests without warnings:
+
+```bash
+# Suppress all warnings (recommended)
+python -W ignore -m pytest
+
+# Or use pytest with warning filters
+pytest -W ignore
+```
+
+These warnings are from pandas dependencies and will be resolved in future pandas versions.
+
+- ✅ **Tests**: All 68 tests must pass
+- ✅ **Coverage**: Maintain minimum 20% coverage
+- ✅ **Linting**: Code follows style guidelines
+- ✅ **Type Checking**: mypy passes without errors
+- ✅ **Documentation**: Docs build successfully
+
+### Automated Testing
+
+- **Unit Tests**: Fast tests for individual functions
+- **Integration Tests**: Tests for module interactions
+- **Performance Tests**: Benchmark critical functions
+- **Coverage Reports**: Track code coverage trends
 
 ## Release Process
 

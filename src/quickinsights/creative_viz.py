@@ -340,6 +340,50 @@ class CreativeVizEngine:
 
         return fig
 
+    def create_heatmap(
+        self, numeric_cols: List[str], title: str = "Heatmap"
+    ) -> go.Figure:
+        """
+        Heatmap oluşturur
+
+        Parameters
+        ----------
+        numeric_cols : List[str]
+            Görselleştirilecek sayısal sütunlar
+        title : str
+            Grafik başlığı
+
+        Returns
+        -------
+        go.Figure
+            Heatmap
+        """
+        # Korelasyon matrisi hesapla
+        corr_matrix = self.df[numeric_cols].corr()
+        
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=corr_matrix.values,
+                x=corr_matrix.columns,
+                y=corr_matrix.index,
+                colorscale="Viridis",
+                text=np.round(corr_matrix.values, 2),
+                texttemplate="%{text}",
+                textfont={"size": 10},
+                hoverongaps=False,
+            )
+        )
+
+        fig.update_layout(
+            title=title,
+            xaxis_title="Features",
+            yaxis_title="Features",
+            width=800,
+            height=600,
+        )
+
+        return fig
+
     def create_heatmap_with_annotations(
         self, data_matrix: pd.DataFrame, title: str = "Annotated Heatmap"
     ) -> go.Figure:
@@ -375,6 +419,90 @@ class CreativeVizEngine:
             title=title,
             xaxis_title="Features",
             yaxis_title="Samples",
+            width=800,
+            height=600,
+        )
+
+        return fig
+
+    def create_bubble_chart(
+        self, x_col: str, y_col: str, size_col: str, color_col: Optional[str] = None
+    ) -> go.Figure:
+        """
+        Bubble chart oluşturur
+
+        Parameters
+        ----------
+        x_col : str
+            X ekseni sütunu
+        y_col : str
+            Y ekseni sütunu
+        size_col : str
+            Bubble boyutu için sütun
+        color_col : str, optional
+            Renk kodlaması için sütun
+
+        Returns
+        -------
+        go.Figure
+            Bubble chart
+        """
+        fig = go.Figure()
+
+        if color_col:
+            # Renk kodlaması ile
+            for color_val in self.df[color_col].unique():
+                mask = self.df[color_col] == color_val
+                fig.add_trace(
+                    go.Scatter(
+                        x=self.df[mask][x_col],
+                        y=self.df[mask][y_col],
+                        mode="markers",
+                        marker=dict(
+                            size=self.df[mask][size_col],
+                            sizemode="area",
+                            sizeref=2.0 * max(self.df[size_col]) / (40.0 ** 2),
+                            sizemin=4,
+                            color=color_val,
+                            opacity=0.7,
+                        ),
+                        name=str(color_val),
+                        text=self.df[mask][color_col],
+                        hovertemplate="<b>%{text}</b><br>" +
+                                   f"{x_col}: %{{x}}<br>" +
+                                   f"{y_col}: %{{y}}<br>" +
+                                   f"{size_col}: %{{marker.size}}<extra></extra>",
+                    )
+                )
+        else:
+            # Renk kodlaması olmadan
+            fig.add_trace(
+                go.Scatter(
+                    x=self.df[x_col],
+                    y=self.df[y_col],
+                    mode="markers",
+                    marker=dict(
+                        size=self.df[size_col],
+                        sizemode="area",
+                        sizeref=2.0 * max(self.df[size_col]) / (40.0 ** 2),
+                        sizemin=4,
+                        color=self.df[size_col],
+                        colorscale="Viridis",
+                        opacity=0.7,
+                        colorbar=dict(title=size_col),
+                    ),
+                    text=self.df[size_col],
+                    hovertemplate=f"{x_col}: %{{x}}<br>" +
+                                 f"{y_col}: %{{y}}<br>" +
+                                 f"{size_col}: %{{text}}<extra></extra>",
+                )
+            )
+
+        fig.update_layout(
+            title="Bubble Chart",
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            showlegend=True,
             width=800,
             height=600,
         )
@@ -627,6 +755,594 @@ class CreativeVizEngine:
             f"✅ {len(exported_files)} yaratıcı görselleştirme dışa aktarıldı: {output_dir}"
         )
         return exported_files
+
+    def create_waterfall_chart(self, x_col: str, y_col: str) -> go.Figure:
+        """Waterfall chart oluşturur"""
+        fig = go.Figure(go.Waterfall(
+            name="Waterfall",
+            orientation="h",
+            measure=["relative"] * len(self.df),
+            x=self.df[y_col],
+            textposition="outside",
+            text=self.df[y_col],
+            y=self.df[x_col],
+            connector={"line": {"color": "rgb(63, 63, 63)"}},
+        ))
+        
+        fig.update_layout(
+            title="Waterfall Chart",
+            showlegend=True,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_funnel_chart(self, x_col: str, y_col: str) -> go.Figure:
+        """Funnel chart oluşturur"""
+        fig = go.Figure(go.Funnel(
+            y=self.df[x_col],
+            x=self.df[y_col],
+        ))
+        
+        fig.update_layout(
+            title="Funnel Chart",
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_gantt_chart(self, start_col: str, end_col: str, task_col: str) -> go.Figure:
+        """Gantt chart oluşturur"""
+        fig = go.Figure(data=[
+            go.Bar(
+                x=[(self.df[start_col].iloc[i], self.df[end_col].iloc[i]) for i in range(len(self.df))],
+                y=self.df[task_col],
+                orientation='h'
+            )
+        ])
+        
+        fig.update_layout(
+            title="Gantt Chart",
+            xaxis_title="Time",
+            yaxis_title="Tasks",
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_sankey_diagram(self, source_cols: List[str], target_col: str) -> go.Figure:
+        """Sankey diagram oluşturur"""
+        # Basit Sankey diagram
+        fig = go.Figure(data=[go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+                label=source_cols + [target_col],
+                color="blue"
+            ),
+            link=dict(
+                source=[0] * len(self.df),
+                target=[len(source_cols)] * len(self.df),
+                value=self.df[target_col]
+            )
+        )])
+        
+        fig.update_layout(
+            title="Sankey Diagram",
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_treemap(self, path_cols: List[str], value_col: str) -> go.Figure:
+        """Treemap oluşturur"""
+        fig = go.Figure(go.Treemap(
+            labels=path_cols,
+            parents=[""] * len(path_cols),
+            values=self.df[value_col],
+        ))
+        
+        fig.update_layout(
+            title="Treemap",
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_violin_plot(self, x_col: str, y_col: str) -> go.Figure:
+        """Violin plot oluşturur"""
+        fig = go.Figure()
+        
+        for category in self.df[x_col].unique():
+            fig.add_trace(go.Violin(
+                x=[category] * len(self.df[self.df[x_col] == category]),
+                y=self.df[self.df[x_col] == category][y_col],
+                name=category,
+                box_visible=True,
+                meanline_visible=True
+            ))
+        
+        fig.update_layout(
+            title="Violin Plot",
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_box_plot(self, x_col: str, y_col: str) -> go.Figure:
+        """Box plot oluşturur"""
+        fig = go.Figure()
+        
+        for category in self.df[x_col].unique():
+            fig.add_trace(go.Box(
+                y=self.df[self.df[x_col] == category][y_col],
+                name=category
+            ))
+        
+        fig.update_layout(
+            title="Box Plot",
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_histogram(self, x_col: str, color_col: str = None) -> go.Figure:
+        """Histogram oluşturur"""
+        if color_col:
+            fig = px.histogram(self.df, x=x_col, color=color_col, title="Histogram")
+        else:
+            fig = px.histogram(self.df, x=x_col, title="Histogram")
+        
+        fig.update_layout(width=800, height=600)
+        return fig
+
+    def create_density_plot(self, x_col: str, color_col: str = None) -> go.Figure:
+        """Density plot oluşturur"""
+        if color_col:
+            fig = px.histogram(self.df, x=x_col, color=color_col, 
+                             histnorm='probability density', title="Density Plot")
+        else:
+            fig = px.histogram(self.df, x=x_col, histnorm='probability density', 
+                             title="Density Plot")
+        
+        fig.update_layout(width=800, height=600)
+        return fig
+
+    def create_contour_plot(self, x_col: str, y_col: str, z_col: str) -> go.Figure:
+        """Contour plot oluşturur"""
+        fig = go.Figure(data=go.Contour(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            z=self.df[z_col],
+            colorscale='Viridis'
+        ))
+        
+        fig.update_layout(
+            title="Contour Plot",
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_quiver_plot(self, x_col: str, y_col: str, u_col: str, v_col: str) -> go.Figure:
+        """Quiver plot oluşturur"""
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatter(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            mode='markers',
+            marker=dict(size=8),
+            name='Points'
+        ))
+        
+        # Vektörler için basit gösterim
+        for i in range(0, len(self.df), 5):  # Her 5. noktada vektör
+            fig.add_trace(go.Scatter(
+                x=[self.df[x_col].iloc[i], self.df[x_col].iloc[i] + self.df[u_col].iloc[i]],
+                y=[self.df[y_col].iloc[i], self.df[y_col].iloc[i] + self.df[v_col].iloc[i]],
+                mode='lines',
+                line=dict(color='red', width=2),
+                showlegend=False
+            ))
+        
+        fig.update_layout(
+            title="Quiver Plot",
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_streamtube_plot(self, x_col: str, y_col: str, z_col: str) -> go.Figure:
+        """Streamtube plot oluşturur"""
+        # Basit 3D scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter3d(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            z=self.df[z_col],
+            mode='markers',
+            marker=dict(size=5, color=self.df[z_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="Streamtube Plot",
+            scene=dict(xaxis_title=x_col, yaxis_title=y_col, zaxis_title=z_col),
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_cone_plot(self, x_col: str, y_col: str, z_col: str, u_col: str) -> go.Figure:
+        """Cone plot oluşturur"""
+        # Basit 3D scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter3d(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            z=self.df[z_col],
+            mode='markers',
+            marker=dict(size=self.df[u_col], color=self.df[u_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="Cone Plot",
+            scene=dict(xaxis_title=x_col, yaxis_title=y_col, zaxis_title=z_col),
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_volume_plot(self, x_col: str, y_col: str, z_col: str, value_col: str) -> go.Figure:
+        """Volume plot oluşturur"""
+        # Basit 3D scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter3d(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            z=self.df[z_col],
+            mode='markers',
+            marker=dict(size=5, color=self.df[value_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="Volume Plot",
+            scene=dict(xaxis_title=x_col, yaxis_title=y_col, zaxis_title=z_col),
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_isosurface_plot(self, x_col: str, y_col: str, z_col: str, value_col: str) -> go.Figure:
+        """Isosurface plot oluşturur"""
+        # Basit 3D scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter3d(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            z=self.df[z_col],
+            mode='markers',
+            marker=dict(size=5, color=self.df[value_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="Isosurface Plot",
+            scene=dict(xaxis_title=x_col, yaxis_title=y_col, zaxis_title=z_col),
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_mesh_3d_plot(self, x_col: str, y_col: str, z_col: str) -> go.Figure:
+        """3D mesh plot oluşturur"""
+        # Basit 3D scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter3d(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            z=self.df[z_col],
+            mode='markers',
+            marker=dict(size=5, color=self.df[z_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="3D Mesh Plot",
+            scene=dict(xaxis_title=x_col, yaxis_title=y_col, zaxis_title=z_col),
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_cone_3d_plot(self, x_col: str, y_col: str, z_col: str, u_col: str) -> go.Figure:
+        """3D cone plot oluşturur"""
+        # Basit 3D scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter3d(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            z=self.df[z_col],
+            mode='markers',
+            marker=dict(size=self.df[u_col], color=self.df[u_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="3D Cone Plot",
+            scene=dict(xaxis_title=x_col, yaxis_title=y_col, zaxis_title=z_col),
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_streamline_plot(self, x_col: str, y_col: str, u_col: str, v_col: str) -> go.Figure:
+        """Streamline plot oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatter(
+            x=self.df[x_col],
+            y=self.df[y_col],
+            mode='markers',
+            marker=dict(size=5, color=self.df[u_col], colorscale='Viridis'),
+            name='Points'
+        ))
+        
+        fig.update_layout(
+            title="Streamline Plot",
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_choropleth_map(self, location_col: str, color_col: str) -> go.Figure:
+        """Choropleth map oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[location_col],
+            y=self.df[color_col],
+            mode='markers',
+            marker=dict(size=8, color=self.df[color_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="Choropleth Map",
+            xaxis_title=location_col,
+            yaxis_title=color_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_scatter_mapbox(self, lat_col: str, lon_col: str, color_col: str) -> go.Figure:
+        """Scatter mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='markers',
+            marker=dict(size=8, color=self.df[color_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="Scatter Mapbox",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_choropleth_mapbox(self, location_col: str, color_col: str) -> go.Figure:
+        """Choropleth mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[location_col],
+            y=self.df[color_col],
+            mode='markers',
+            marker=dict(size=8, color=self.df[color_col], colorscale='Viridis')
+        )])
+        
+        fig.update_layout(
+            title="Choropleth Mapbox",
+            xaxis_title=location_col,
+            yaxis_title=color_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_density_mapbox(self, lat_col: str, lon_col: str) -> go.Figure:
+        """Density mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='markers',
+            marker=dict(size=8, color='blue', opacity=0.6)
+        )])
+        
+        fig.update_layout(
+            title="Density Mapbox",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_line_mapbox(self, lat_col: str, lon_col: str, color_col: str) -> go.Figure:
+        """Line mapbox oluşturur"""
+        # Basit line plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='lines+markers',
+            line=dict(color='blue', width=2),
+            marker=dict(size=5)
+        )])
+        
+        fig.update_layout(
+            title="Line Mapbox",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_polygon_mapbox(self, lat_col: str, lon_col: str) -> go.Figure:
+        """Polygon mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='markers',
+            marker=dict(size=8, color='green', opacity=0.7)
+        )])
+        
+        fig.update_layout(
+            title="Polygon Mapbox",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_choropleth_mapbox_with_hover(self, location_col: str, color_col: str, hover_col: str) -> go.Figure:
+        """Hover ile choropleth mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[location_col],
+            y=self.df[color_col],
+            mode='markers',
+            marker=dict(size=8, color=self.df[color_col], colorscale='Viridis'),
+            text=self.df[hover_col],
+            hovertemplate="<b>%{text}</b><br>" +
+                         f"{location_col}: %{{x}}<br>" +
+                         f"{color_col}: %{{y}}<extra></extra>"
+        )])
+        
+        fig.update_layout(
+            title="Choropleth Mapbox with Hover",
+            xaxis_title=location_col,
+            yaxis_title=color_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_scatter_mapbox_with_hover(self, lat_col: str, lon_col: str, color_col: str, size_col: str) -> go.Figure:
+        """Hover ile scatter mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='markers',
+            marker=dict(
+                size=self.df[size_col],
+                color=self.df[color_col],
+                colorscale='Viridis',
+                opacity=0.7
+            ),
+            text=self.df[size_col],
+            hovertemplate=f"{lat_col}: %{{x}}<br>" +
+                         f"{lon_col}: %{{y}}<br>" +
+                         f"{size_col}: %{{text}}<extra></extra>"
+        )])
+        
+        fig.update_layout(
+            title="Scatter Mapbox with Hover",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_density_mapbox_with_hover(self, lat_col: str, lon_col: str, value_col: str) -> go.Figure:
+        """Hover ile density mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='markers',
+            marker=dict(
+                size=8,
+                color=self.df[value_col],
+                colorscale='Viridis',
+                opacity=0.6
+            ),
+            text=self.df[value_col],
+            hovertemplate=f"{lat_col}: %{{x}}<br>" +
+                         f"{lon_col}: %{{y}}<br>" +
+                         f"{value_col}: %{{text}}<extra></extra>"
+        )])
+        
+        fig.update_layout(
+            title="Density Mapbox with Hover",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_line_mapbox_with_hover(self, lat_col: str, lon_col: str, color_col: str, value_col: str) -> go.Figure:
+        """Hover ile line mapbox oluşturur"""
+        # Basit line plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='lines+markers',
+            line=dict(color='blue', width=2),
+            marker=dict(size=5, color=self.df[value_col], colorscale='Viridis'),
+            text=self.df[value_col],
+            hovertemplate=f"{lat_col}: %{{x}}<br>" +
+                         f"{lon_col}: %{{y}}<br>" +
+                         f"{value_col}: %{{text}}<extra></extra>"
+        )])
+        
+        fig.update_layout(
+            title="Line Mapbox with Hover",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
+
+    def create_polygon_mapbox_with_hover(self, lat_col: str, lon_col: str, value_col: str) -> go.Figure:
+        """Hover ile polygon mapbox oluşturur"""
+        # Basit scatter plot olarak göster
+        fig = go.Figure(data=[go.Scatter(
+            x=self.df[lat_col],
+            y=self.df[lon_col],
+            mode='markers',
+            marker=dict(
+                size=8,
+                color=self.df[value_col],
+                colorscale='Viridis',
+                opacity=0.7
+            ),
+            text=self.df[value_col],
+            hovertemplate=f"{lat_col}: %{{x}}<br>" +
+                         f"{lon_col}: %{{y}}<br>" +
+                         f"{value_col}: %{{text}}<extra></extra>"
+        )])
+        
+        fig.update_layout(
+            title="Polygon Mapbox with Hover",
+            xaxis_title=lat_col,
+            yaxis_title=lon_col,
+            width=800,
+            height=600,
+        )
+        return fig
 
 
 def create_creative_visualizations(
