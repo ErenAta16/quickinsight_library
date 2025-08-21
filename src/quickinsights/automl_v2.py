@@ -24,6 +24,23 @@ from .utils import save_results
 
 warnings.filterwarnings('ignore')
 
+# Global ML library availability
+def _get_ml_availability():
+    """Get ML library availability silently."""
+    sklearn_utils = get_sklearn_utils()
+    lightgbm_utils = get_lightgbm_utils()
+    xgboost_utils = get_xgboost_utils()
+    shap_utils = get_shap_utils()
+    
+    return (
+        sklearn_utils['available'],
+        lightgbm_utils['available'],
+        xgboost_utils['available'],
+        shap_utils['available']
+    )
+
+SKLEARN_AVAILABLE, LIGHTGBM_AVAILABLE, XGBOOST_AVAILABLE, SHAP_AVAILABLE = _get_ml_availability()
+
 def intelligent_model_selection(
     X: Union[np.ndarray, pd.DataFrame],
     y: Union[np.ndarray, pd.Series],
@@ -435,7 +452,7 @@ def intelligent_model_selection(
                 ])
         
         # Add advanced models if available
-        if LIGHT_AVAILABLE:
+        if LIGHTGBM_AVAILABLE:
             if task_type == 'classification':
                 models.append(('LightGBM', lgb.LGBMClassifier()))
             else:
@@ -522,66 +539,162 @@ def intelligent_model_selection(
         return 'RandomForest'  # Simplified
     
     def _get_model_and_params(self, model_type):
-        """Get model and parameter grid"""
-        if model_type == 'RandomForest':
-            return RandomForestClassifier(), {'n_estimators': [100, 200]}
-        return RandomForestClassifier(), {'n_estimators': [100]}
-    
-    def _select_tuning_method(self, param_grid, max_iterations):
-        """Select optimal tuning method"""
-        if len(param_grid) < 10:
-            return 'grid'
-        return 'random'
-    
-    def _perform_tuning(self, model, param_grid, X, y, method, max_iter, cv, n_jobs):
-        """Perform hyperparameter tuning"""
-        if method == 'grid':
-            search = GridSearchCV(model, param_grid, cv=cv, n_jobs=n_jobs)
-        else:
-            search = RandomizedSearchCV(model, param_grid, n_iter=max_iter, cv=cv, n_jobs=n_jobs)
+        """Get model and parameters for a given type"""
+        if not SKLEARN_AVAILABLE:
+            return None, {}
         
-        search.fit(X, y)
-        return search.best_params_, search.best_score_, search.cv_results_
-    
+        try:
+            sklearn_utils = get_sklearn_utils()
+            
+            if model_type == 'classification':
+                models = {
+                    'logistic_regression': sklearn_utils['LogisticRegression'](),
+                    'decision_tree': sklearn_utils['DecisionTreeClassifier'](),
+                    'knn': sklearn_utils['KNeighborsClassifier'](),
+                    'random_forest': sklearn_utils['RandomForestClassifier'](),
+                    'gradient_boosting': sklearn_utils['GradientBoostingClassifier'](),
+                    'svm': sklearn_utils['SVC']()
+                }
+            else:  # regression
+                models = {
+                    'linear_regression': sklearn_utils['LinearRegression'](),
+                    'decision_tree': sklearn_utils['DecisionTreeRegressor'](),
+                    'knn': sklearn_utils['KNeighborsRegressor'](),
+                    'random_forest': sklearn_utils['RandomForestRegressor'](),
+                    'gradient_boosting': sklearn_utils['GradientBoostingRegressor'](),
+                    'svr': sklearn_utils['SVR']()
+                }
+            
+            # Add advanced models if available
+            if LIGHTGBM_AVAILABLE:
+                lightgbm_utils = get_lightgbm_utils()
+                if model_type == 'classification':
+                    models['lightgbm'] = lightgbm_utils['LGBMClassifier']()
+                else:
+                    models['lightgbm'] = lightgbm_utils['LGBMRegressor']()
+            
+            if XGBOOST_AVAILABLE:
+                xgboost_utils = get_xgboost_utils()
+                if model_type == 'classification':
+                    models['xgboost'] = xgboost_utils['XGBClassifier']()
+                else:
+                    models['xgboost'] = xgboost_utils['XGBRegressor']()
+            
+            return models, {}
+            
+        except Exception as e:
+            return None, {}
+
+    def _evaluate_models(self, X, y, models, task_type, cv_folds, n_jobs):
+        """Evaluate models using cross-validation"""
+        if not SKLEARN_AVAILABLE:
+            return {}
+        
+        try:
+            sklearn_utils = get_sklearn_utils()
+            cross_val_score = sklearn_utils['cross_val_score']
+            
+            results = {}
+            
+            for name, model in models.items():
+                try:
+                    # Use cross-validation
+                    if task_type == 'classification':
+                        scores = cross_val_score(model, X, y, cv=cv_folds, scoring='accuracy', n_jobs=n_jobs)
+                    else:
+                        scores = cross_val_score(model, X, y, cv=cv_folds, scoring='r2', n_jobs=n_jobs)
+                    
+                    results[name] = {
+                        'model': model,
+                        'mean_score': scores.mean(),
+                        'std_score': scores.std(),
+                        'scores': scores.tolist()
+                    }
+                except Exception as e:
+                    results[name] = {'error': str(e)}
+            
+            return results
+            
+        except Exception as e:
+            return {'error': f'Model evaluation failed: {str(e)}'}
+
     def _train_final_model(self, model, best_params, X, y):
         """Train final model with best parameters"""
-        model.set_params(**best_params)
-        model.fit(X, y)
-        return model
-    
+        try:
+            # Set best parameters if available
+            if best_params:
+                model.set_params(**best_params)
+            
+            # Train model
+            model.fit(X, y)
+            return model
+            
+        except Exception as e:
+            return None
+
     def _get_feature_importance(self, model, X):
-        """Get feature importance from model"""
+        """Get feature importance from trained model"""
         try:
             if hasattr(model, 'feature_importances_'):
                 return model.feature_importances_.tolist()
             elif hasattr(model, 'coef_'):
-                return np.abs(model.coef_).tolist()
+                return model.coef_.tolist()
+            else:
+                return None
+        except Exception:
             return None
-        except:
-            return None
-    
+
     def _analyze_model_complexity(self, model):
         """Analyze model complexity"""
-        return {'type': type(model).__name__, 'parameters': len(model.get_params())}
-    
+        try:
+            complexity = {}
+            
+            if hasattr(model, 'n_estimators'):
+                complexity['n_estimators'] = model.n_estimators
+            if hasattr(model, 'max_depth'):
+                complexity['max_depth'] = model.max_depth
+            if hasattr(model, 'n_neighbors'):
+                complexity['n_neighbors'] = model.n_neighbors
+            
+            return complexity
+        except Exception:
+            return {}
+
     def _generate_prediction_examples(self, model, X, y):
         """Generate prediction examples"""
         try:
-            predictions = model.predict(X[:5])
-            return {'predictions': predictions.tolist(), 'actual': y[:5].tolist()}
-        except:
-            return None
-    
+            predictions = model.predict(X[:5])  # First 5 samples
+            return {
+                'actual': y[:5].tolist(),
+                'predicted': predictions.tolist(),
+                'sample_indices': list(range(5))
+            }
+        except Exception:
+            return {}
+
     def _perform_shap_analysis(self, model, X):
-        """Perform SHAP analysis"""
+        """Perform SHAP analysis if available"""
+        if not SHAP_AVAILABLE:
+            return {'error': 'SHAP not available'}
+        
         try:
-            if SHAP_AVAILABLE:
-                explainer = shap.TreeExplainer(model) if hasattr(model, 'feature_importances_') else shap.LinearExplainer(model, X)
-                shap_values = explainer.shap_values(X[:100])
-                return {'shap_values': str(shap_values), 'available': True}
-        except:
-            pass
-        return {'available': False}
+            shap_utils = get_shap_utils()
+            TreeExplainer = shap_utils['TreeExplainer']
+            
+            # Use TreeExplainer for tree-based models
+            if hasattr(model, 'feature_importances_'):
+                explainer = TreeExplainer(model)
+                shap_values = explainer.shap_values(X[:100])  # First 100 samples
+                
+                return {
+                    'shap_values': shap_values.tolist() if isinstance(shap_values, np.ndarray) else shap_values,
+                    'feature_names': list(X.columns) if hasattr(X, 'columns') else list(range(X.shape[1]))
+                }
+            else:
+                return {'error': 'Model not compatible with SHAP'}
+                
+        except Exception as e:
+            return {'error': f'SHAP analysis failed: {str(e)}'}
     
     def _analyze_decision_paths(self, model, X):
         """Analyze decision paths"""
@@ -605,14 +718,29 @@ def intelligent_model_selection(
     
     def _evaluate_current_model(self, X, y):
         """Evaluate current model performance"""
+        if not SKLEARN_AVAILABLE:
+            return {'error': 'Scikit-learn not available'}
+        
         try:
-            predictions = self.best_model.predict(X)
-            if len(np.unique(y)) <= 20:  # Classification
-                return accuracy_score(y, predictions)
-            else:  # Regression
-                return r2_score(y, predictions)
-        except:
-            return 0.0
+            sklearn_utils = get_sklearn_utils()
+            accuracy_score = sklearn_utils['accuracy_score']
+            r2_score = sklearn_utils['r2_score']
+            
+            y_pred = self.best_model.predict(X)
+            
+            if self.task_type == 'classification':
+                score = accuracy_score(y, y_pred)
+            else:
+                score = r2_score(y, y_pred)
+            
+            return {
+                'score': float(score),
+                'predictions': y_pred.tolist(),
+                'actual': y.tolist() if hasattr(y, 'tolist') else list(y)
+            }
+            
+        except Exception as e:
+            return {'error': f'Evaluation failed: {str(e)}'}
     
     def _incremental_learning(self, X_new, y_new):
         """Incremental learning approach"""
@@ -926,252 +1054,219 @@ class AutoMLPipeline:
     
     def _tune_hyperparameters(self, X, y):
         """Tune hyperparameters for selected models"""
+        if not SKLEARN_AVAILABLE:
+            return {'error': 'Scikit-learn not available'}
+        
         try:
-            print("⚙️  Starting hyperparameter tuning...")
+            sklearn_utils = get_sklearn_utils()
+            GridSearchCV = sklearn_utils['GridSearchCV']
+            RandomizedSearchCV = sklearn_utils['RandomizedSearchCV']
             
-            if not hasattr(self, 'model_candidates') or not self.model_candidates:
-                print("⚠️  No models to tune")
-                return
-            
-            # Simple hyperparameter grids
-            param_grids = {
-                'LogisticRegression': {'C': [0.1, 1, 10]},
-                'RandomForest': {'n_estimators': [50, 100], 'max_depth': [5, 10, None]},
-                'GradientBoosting': {'n_estimators': [50, 100], 'learning_rate': [0.01, 0.1]},
-                'SVM': {'C': [0.1, 1, 10], 'gamma': ['scale', 'auto']},
-                'KNN': {'n_neighbors': [3, 5, 7]},
-                'Ridge': {'alpha': [0.1, 1, 10]},
-                'Lasso': {'alpha': [0.1, 1, 10]},
-                'LinearRegression': {}
-            }
-            
-            best_models = {}
-            best_scores = {}
+            tuned_models = {}
             
             for name, model in self.model_candidates.items():
-                if name in param_grids and param_grids[name]:
-                    print(f"⚙️  Tuning {name}...")
+                try:
+                    # Simple parameter grid
+                    if 'random_forest' in name.lower():
+                        param_grid = {'n_estimators': [50, 100], 'max_depth': [5, 10]}
+                    elif 'gradient_boosting' in name.lower():
+                        param_grid = {'n_estimators': [50, 100], 'learning_rate': [0.1, 0.2]}
+                    else:
+                        param_grid = {}
                     
-                    from sklearn.model_selection import GridSearchCV
-                    grid_search = GridSearchCV(
-                        model, param_grids[name], 
-                        cv=self.cv_folds, 
-                        scoring=self._get_scoring_metric(),
-                        n_jobs=-1
-                    )
-                    
-                    grid_search.fit(X, y)
-                    best_models[name] = grid_search.best_estimator_
-                    best_scores[name] = grid_search.best_score_
-                    
-                    print(f"✅ {name}: Best score = {grid_search.best_score_:.4f}")
-                else:
-                    # No tuning needed
-                    model.fit(X, y)
-                    best_models[name] = model
-                    
-                    # Quick evaluation
-                    from sklearn.model_selection import cross_val_score
-                    scores = cross_val_score(model, X, y, cv=self.cv_folds, scoring=self._get_scoring_metric())
-                    best_scores[name] = scores.mean()
-                    
-                    print(f"✅ {name}: Score = {scores.mean():.4f}")
-                
-                self.models_tried += 1
+                    if param_grid:
+                        # Use GridSearchCV for small parameter grids
+                        grid_search = GridSearchCV(model, param_grid, cv=3, n_jobs=-1)
+                        grid_search.fit(X, y)
+                        
+                        tuned_models[name] = {
+                            'model': grid_search.best_estimator_,
+                            'best_params': grid_search.best_params_,
+                            'best_score': grid_search.best_score_
+                        }
+                    else:
+                        # No tuning needed
+                        model.fit(X, y)
+                        tuned_models[name] = {
+                            'model': model,
+                            'best_params': {},
+                            'best_score': 0.0
+                        }
+                        
+                except Exception as e:
+                    print(f"⚠️  Model {name} tuning failed: {e}")
+                    continue
             
-            self.tuned_models = best_models
-            self.model_scores = best_scores
-            
-            # Find best model
-            best_name = max(best_scores, key=best_scores.get)
-            self.best_model = best_models[best_name]
-            self.best_score = best_scores[best_name]
-            
-            print(f"🏆 Best model: {best_name} with score {self.best_score:.4f}")
+            return tuned_models
             
         except Exception as e:
-            print(f"⚠️  Hyperparameter tuning failed: {e}")
-    
+            return {'error': f'Hyperparameter tuning failed: {str(e)}'}
+
     def _evaluate_final_models(self, X, y, validation_data=None):
-        """Evaluate final models and generate comparison"""
+        """Evaluate final tuned models"""
+        if not SKLEARN_AVAILABLE:
+            return {'error': 'Scikit-learn not available'}
+        
         try:
-            print("📈 Evaluating final models...")
+            sklearn_utils = get_sklearn_utils()
+            accuracy_score = sklearn_utils['accuracy_score']
+            r2_score = sklearn_utils['r2_score']
             
-            if not hasattr(self, 'tuned_models') or not self.tuned_models:
-                print("⚠️  No tuned models to evaluate")
-                return
-            
-            # Comprehensive evaluation
             evaluation_results = {}
             
-            for name, model in self.tuned_models.items():
-                # Cross-validation scores
-                from sklearn.model_selection import cross_val_score
-                cv_scores = cross_val_score(model, X, y, cv=self.cv_folds, scoring=self._get_scoring_metric())
-                
-                # Predictions
-                y_pred = model.predict(X)
-                
-                # Metrics
-                if self.task_type == 'classification':
-                    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-                    metrics = {
-                        'cv_mean': cv_scores.mean(),
-                        'cv_std': cv_scores.std(),
-                        'accuracy': accuracy_score(y, y_pred),
-                        'precision': precision_score(y, y_pred, average='weighted'),
-                        'recall': recall_score(y, y_pred, average='weighted'),
-                        'f1': f1_score(y, y_pred, average='weighted')
+            for name, model_info in self.tuned_models.items():
+                try:
+                    model = model_info['model']
+                    y_pred = model.predict(X)
+                    
+                    if self.task_type == 'classification':
+                        score = accuracy_score(y, y_pred)
+                    else:
+                        score = r2_score(y, y_pred)
+                    
+                    evaluation_results[name] = {
+                        'score': float(score),
+                        'best_params': model_info['best_params'],
+                        'best_tuning_score': float(model_info['best_score'])
                     }
-                else:  # Regression
-                    from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-                    metrics = {
-                        'cv_mean': cv_scores.mean(),
-                        'cv_std': cv_scores.std(),
-                        'r2': r2_score(y, y_pred),
-                        'rmse': np.sqrt(mean_squared_error(y, y_pred)),
-                        'mae': mean_absolute_error(y, y_pred)
-                    }
+                    
+                except Exception as e:
+                    evaluation_results[name] = {'error': str(e)}
+            
+            # Find best model
+            if evaluation_results:
+                best_name = max(evaluation_results.keys(), 
+                              key=lambda x: evaluation_results[x].get('score', 0) if 'error' not in evaluation_results[x] else 0)
                 
-                evaluation_results[name] = metrics
+                if 'error' not in evaluation_results[best_name]:
+                    self.best_model = self.tuned_models[best_name]['model']
+                    self.best_score = evaluation_results[best_name]['score']
             
-            self.model_comparison = evaluation_results
-            
-            # Feature importance for tree-based models
-            if hasattr(self.best_model, 'feature_importances_'):
-                self.feature_importance = self.best_model.feature_importances_
-                print("✅ Feature importance extracted")
-            
-            print("✅ Model evaluation completed")
+            return evaluation_results
             
         except Exception as e:
-            print(f"⚠️  Model evaluation failed: {e}")
-    
+            return {'error': f'Final evaluation failed: {str(e)}'}
+
     def _generate_insights(self):
-        """Generate insights and recommendations"""
+        """Generate insights from the analysis"""
         try:
-            print("💡 Generating insights...")
-            
-            insights = []
-            recommendations = []
-            
-            # Performance insights
-            if self.best_score:
-                if self.best_score > 0.9:
-                    insights.append("Excellent model performance achieved")
-                    recommendations.append("Model is ready for production deployment")
-                elif self.best_score > 0.8:
-                    insights.append("Good model performance achieved")
-                    recommendations.append("Consider ensemble methods for improvement")
-                elif self.best_score > 0.7:
-                    insights.append("Acceptable model performance achieved")
-                    recommendations.append("Feature engineering could improve performance")
-                else:
-                    insights.append("Model performance needs improvement")
-                    recommendations.append("Review data quality and feature engineering")
-            
-            # Model complexity insights
-            if hasattr(self.best_model, 'n_estimators'):
-                if self.best_model.n_estimators > 200:
-                    insights.append("Complex ensemble model selected")
-                    recommendations.append("Consider simpler models for interpretability")
-            
-            # Feature insights
-            if self.feature_importance is not None:
-                top_features = np.argsort(self.feature_importance)[-5:]
-                insights.append(f"Top 5 most important features identified")
-                recommendations.append("Focus on these features for further analysis")
-            
-            self.pipeline_results = {
-                'insights': insights,
-                'recommendations': recommendations,
-                'execution_time': self.execution_time,
-                'models_tried': self.models_tried,
-                'best_score': self.best_score,
-                'task_type': self.task_type
+            insights = {
+                'task_type': self.task_type,
+                'best_model_name': type(self.best_model).__name__ if self.best_model else 'None',
+                'best_score': float(self.best_score) if hasattr(self, 'best_score') else 0.0,
+                'total_models_tested': len(self.selected_models),
+                'hyperparameter_tuning_performed': len(self.tuned_models) > 0,
+                'execution_time': self.execution_time
             }
             
-            print("✅ Insights generated")
+            # Add feature importance if available
+            if self.best_model and hasattr(self.best_model, 'feature_importances_'):
+                insights['feature_importance'] = self.best_model.feature_importances_.tolist()
+            
+            return insights
             
         except Exception as e:
-            print(f"⚠️  Insight generation failed: {e}")
-    
+            return {'error': f'Insight generation failed: {str(e)}'}
+
     def _get_scoring_metric(self):
-        """Get appropriate scoring metric"""
-        if self.optimization_metric == 'auto':
-            if self.task_type == 'classification':
-                return 'f1_weighted'
-            else:
-                return 'r2'
+        """Get appropriate scoring metric for the task"""
+        if self.task_type == 'classification':
+            return 'accuracy'
         else:
-            return self.optimization_metric
-    
+            return 'r2'
+
     def predict(self, X):
         """Make predictions using the best model"""
-        if self.best_model is None:
-            raise ValueError("Pipeline not fitted. Call fit() first.")
+        if not self.best_model:
+            raise ValueError("No trained model available. Call fit() first.")
         
-        # Preprocess input data
-        X_processed, _ = self._preprocess_data(X, None)
-        
-        # Make predictions
-        return self.best_model.predict(X_processed)
-    
+        try:
+            return self.best_model.predict(X)
+        except Exception as e:
+            raise ValueError(f"Prediction failed: {str(e)}")
+
     def predict_proba(self, X):
-        """Get prediction probabilities (classification only)"""
+        """Get prediction probabilities (for classification)"""
+        if not self.best_model:
+            raise ValueError("No trained model available. Call fit() first.")
+        
         if self.task_type != 'classification':
             raise ValueError("Probability predictions only available for classification tasks")
         
-        if self.best_model is None:
-            raise ValueError("Pipeline not fitted. Call fit() first.")
-        
-        # Preprocess input data
-        X_processed, _ = self._preprocess_data(X, None)
-        
-        # Get probabilities
-        if hasattr(self.best_model, 'predict_proba'):
-            return self.best_model.predict_proba(X_processed)
-        else:
-            raise ValueError("Model does not support probability predictions")
-    
+        try:
+            if hasattr(self.best_model, 'predict_proba'):
+                return self.best_model.predict_proba(X)
+            else:
+                raise ValueError("Model does not support probability predictions")
+        except Exception as e:
+            raise ValueError(f"Probability prediction failed: {str(e)}")
+
     def get_feature_importance(self):
-        """Get feature importance if available"""
-        return self.feature_importance
-    
+        """Get feature importance from the best model"""
+        if not self.best_model:
+            return None
+        
+        try:
+            if hasattr(self.best_model, 'feature_importances_'):
+                return self.best_model.feature_importances_.tolist()
+            elif hasattr(self.best_model, 'coef_'):
+                return self.best_model.coef_.tolist()
+            else:
+                return None
+        except Exception:
+            return None
+
     def get_model_comparison(self):
-        """Get detailed model comparison results"""
-        return self.model_comparison
-    
+        """Get comparison of all tested models"""
+        return self.evaluation_results
+
     def get_pipeline_summary(self):
-        """Get pipeline execution summary"""
+        """Get summary of the entire pipeline"""
         return {
             'task_type': self.task_type,
-            'best_model': type(self.best_model).__name__ if self.best_model else None,
-            'best_score': self.best_score,
+            'data_shape': self.data_shape,
+            'models_tested': len(self.selected_models),
+            'best_model': type(self.best_model).__name__ if self.best_model else 'None',
+            'best_score': float(self.best_score) if hasattr(self, 'best_score') else 0.0,
             'execution_time': self.execution_time,
-            'models_tried': self.models_tried,
-            'cv_folds': self.cv_folds,
-            'insights': self.pipeline_results.get('insights', []),
-            'recommendations': self.pipeline_results.get('recommendations', [])
+            'hyperparameter_tuning': len(self.tuned_models) > 0
         }
-    
+
     def save_pipeline(self, filepath):
-        """Save the fitted pipeline"""
+        """Save the trained pipeline"""
         try:
             import joblib
-            joblib.dump(self, filepath)
+            pipeline_data = {
+                'best_model': self.best_model,
+                'task_type': self.task_type,
+                'data_shape': self.data_shape,
+                'evaluation_results': self.evaluation_results,
+                'tuned_models': self.tuned_models
+            }
+            joblib.dump(pipeline_data, filepath)
             print(f"💾 Pipeline saved to: {filepath}")
+            return True
         except Exception as e:
             print(f"❌ Failed to save pipeline: {e}")
-    
+            return False
+
     @classmethod
     def load_pipeline(cls, filepath):
         """Load a saved pipeline"""
         try:
             import joblib
-            pipeline = joblib.load(filepath)
+            pipeline_data = joblib.load(filepath)
+            
+            # Create new instance
+            instance = cls()
+            instance.best_model = pipeline_data['best_model']
+            instance.task_type = pipeline_data['task_type']
+            instance.data_shape = pipeline_data['data_shape']
+            instance.evaluation_results = pipeline_data['evaluation_results']
+            instance.tuned_models = pipeline_data['tuned_models']
+            
             print(f"📂 Pipeline loaded from: {filepath}")
-            return pipeline
+            return instance
         except Exception as e:
             print(f"❌ Failed to load pipeline: {e}")
             return None
