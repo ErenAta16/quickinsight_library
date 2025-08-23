@@ -131,9 +131,39 @@ dmypy.json
 # Test and development files
 test_data.csv
 analysis_output/
+visualization_output/
+test_visualization_output/
 models/
 *.pkl
 *.joblib
+
+# Security and API files
+*.key
+*.pem
+*.p12
+.env
+.env.local
+.env.production
+secrets.json
+credentials.json
+api_keys.txt
+
+# Performance and security reports
+*_report.json
+*_report.xml
+performance_baseline.json
+security_assessment_report.json
+bandit-report.json
+safety-report.json
+
+# Cache and temporary files
+.benchmarks/
+.mypy_cache/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # PyPI configuration
 .pypirc

@@ -1,0 +1,5 @@
+exclude_dirs: ['tests', 'venv', '.venv', 'env', '.env']
+skips: ['B101', 'B601']  # Skip specific test-related warnings
+targets: ['src/']
+output_format: json
+output_file: bandit-report.json
