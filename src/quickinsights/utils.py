@@ -14,15 +14,15 @@ import numpy as np
 import pandas as pd
 
 
-
-
-def get_gpu_utils():
+def get_gpu_utils() -> Dict[str, Any]:
     """Get GPU-related utility functions."""
     try:
         from .acceleration import gpu_available
+
         return {"gpu_status": gpu_available()}
     except ImportError:
         return {"gpu_status": {"error": "GPU utilities not available"}}
+
 
 def create_output_directory(output_dir: str) -> str:
     """Create output directory if it doesn't exist."""
@@ -31,28 +31,37 @@ def create_output_directory(output_dir: str) -> str:
         print(f"📁 Output directory created: {output_dir}")
     return output_dir
 
-def save_results(results: Dict[str, Any], operation_name: str, output_dir: str = "./quickinsights_output") -> str:
+
+def save_results(
+    results: Dict[str, Any],
+    operation_name: str,
+    output_dir: str = "./quickinsights_output",
+) -> str:
     """Save results to JSON file with timestamp."""
     create_output_directory(output_dir)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{operation_name}_{timestamp}.json"
     filepath = os.path.join(output_dir, filename)
-    
-    with open(filepath, 'w', encoding='utf-8') as f:
+
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, default=str)
-    
+
     print(f"💾 Results saved: {filepath}")
     return filepath
 
+
 def measure_execution_time(func: Callable) -> Callable:
     """Decorator to measure execution time of functions."""
-    def wrapper(*args, **kwargs):
+
+    def wrapper(*args: Any, **kwargs: Any) -> tuple:
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
         execution_time = end_time - start_time
         return result, execution_time
+
     return wrapper
+
 
 def validate_dataframe(df: Any) -> pd.DataFrame:
     """Validate that input is a valid DataFrame."""
@@ -62,148 +71,9 @@ def validate_dataframe(df: Any) -> pd.DataFrame:
         raise ValueError("DataFrame cannot be empty")
     return df
 
+
 def get_data_info(df: pd.DataFrame) -> Dict[str, Any]:
     """Get comprehensive information about a DataFrame."""
-    info = {
-        "shape": df.shape,
-        "dtypes": df.dtypes.to_dict(),
-        "memory_usage_mb": df.memory_usage(deep=True).sum() / 1024**2,
-        "missing_values": df.isnull().sum().to_dict(),
-        "missing_percentage": (df.isnull().sum() / len(df) * 100).to_dict(),
-        "numeric_columns": df.select_dtypes(include=[np.number]).columns.tolist(),
-        "categorical_columns": df.select_dtypes(include=["object", "category"]).columns.tolist(),
-        "datetime_columns": df.select_dtypes(include=["datetime64"]).columns.tolist(),
-        "unique_counts": {col: df[col].nunique() for col in df.columns},
-        "duplicate_rows": df.duplicated().sum(),
-        "duplicate_percentage": (df.duplicated().sum() / len(df)) * 100,
-    }
-    
-    # Add summary statistics for numeric columns
-    if len(info["numeric_columns"]) > 0:
-        numeric_df = df[info["numeric_columns"]]
-        info["numeric_summary"] = {
-            "mean": numeric_df.mean().to_dict(),
-            "median": numeric_df.median().to_dict(),
-            "std": numeric_df.std().to_dict(),
-            "min": numeric_df.min().to_dict(),
-            "max": numeric_df.max().to_dict(),
-        }
-    
-    return info
-
-def detect_outliers(df: pd.DataFrame, columns: Optional[List[str]] = None, method: str = 'iqr') -> Dict[str, Any]:
-    """Detect outliers in DataFrame columns."""
-    if columns is None:
-        columns = df.select_dtypes(include=[np.number]).columns.tolist()
-    
-    outliers = {}
-    
-    for col in columns:
-        if col in df.columns and df[col].dtype in ['int64', 'float64']:
-            Q1 = df[col].quantile(0.25)
-            Q3 = df[col].quantile(0.75)
-            IQR = Q3 - Q1
-            lower_bound = Q1 - 1.5 * IQR
-            upper_bound = Q3 + 1.5 * IQR
-            
-            outlier_mask = (df[col] < lower_bound) | (df[col] > upper_bound)
-            outlier_count = outlier_mask.sum()
-            outlier_percentage = (outlier_count / len(df)) * 100
-            
-            outliers[col] = {
-                'count': outlier_count,
-                'percentage': outlier_percentage,
-                'indices': df[outlier_mask].index.tolist(),
-                'values': df[outlier_mask][col].tolist()
-            }
-    
-    return outliers
-
-def get_correlation_strength(corr_value: float) -> str:
-    """Get correlation strength description based on correlation value."""
-    abs_corr = abs(corr_value)
-    
-    if abs_corr >= 0.8:
-        return "Çok Güçlü"
-    elif abs_corr >= 0.6:
-        return "Güçlü"
-    elif abs_corr >= 0.4:
-        return "Orta"
-    elif abs_corr >= 0.2:
-        return "Zayıf"
-    else:
-        return "Çok Zayıf"
-
-def make_json_serializable(obj: Any) -> Any:
-    """Convert numpy/pandas objects to JSON serializable format."""
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, pd.Series):
-        return obj.tolist()
-    elif isinstance(obj, pd.DataFrame):
-        return obj.to_dict('records')
-    elif isinstance(obj, np.integer):
-        return int(obj)
-    elif isinstance(obj, np.floating):
-        return float(obj)
-    elif isinstance(obj, np.bool_):
-        return bool(obj)
-    elif pd.isna(obj):
-        return None
-    else:
-        return obj
-
-
-def create_output_directory(output_dir: str) -> str:
-    """
-    Create output directory if it doesn't exist.
-
-    Args:
-        output_dir: Path to the output directory
-
-    Returns:
-        Path to the created directory
-    """
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        print(f"📁 Output directory created: {output_dir}")
-    return output_dir
-
-
-def get_correlation_strength(corr_value: float) -> str:
-    """
-    Get correlation strength description based on correlation value.
-
-    Args:
-        corr_value: Correlation coefficient value
-
-    Returns:
-        String description of correlation strength
-    """
-    abs_corr = abs(corr_value)
-
-    if abs_corr >= 0.8:
-        return "Çok Güçlü"
-    elif abs_corr >= 0.6:
-        return "Güçlü"
-    elif abs_corr >= 0.4:
-        return "Orta"
-    elif abs_corr >= 0.2:
-        return "Zayıf"
-    else:
-        return "Çok Zayıf"
-
-
-def get_data_info(df: pd.DataFrame) -> Dict[str, Any]:
-    """
-    Get comprehensive information about a DataFrame.
-
-    Args:
-        df: DataFrame to analyze
-
-    Returns:
-        Dictionary with data information
-    """
     info = {
         "shape": df.shape,
         "dtypes": df.dtypes.to_dict(),
@@ -231,70 +101,74 @@ def get_data_info(df: pd.DataFrame) -> Dict[str, Any]:
             "max": numeric_df.max().to_dict(),
         }
 
-    # Add value counts for categorical columns
-    if len(info["categorical_columns"]) > 0:
-        info["categorical_summary"] = {}
-        for col in info["categorical_columns"]:
-            value_counts = df[col].value_counts()
-            info["categorical_summary"][col] = {
-                "top_values": value_counts.head(5).to_dict(),
-                "unique_count": value_counts.count(),
-            }
-
     return info
 
 
 def detect_outliers(
-    df: pd.DataFrame,
-    columns: Optional[List[str]] = None,
-    method: str = "zscore",
-    threshold: float = 3.0,
-) -> pd.DataFrame:
-    """
-    Detect outliers in DataFrame columns.
-
-    Args:
-        df: DataFrame to analyze
-        columns: Columns to check (None for all numeric columns)
-        method: Detection method ('zscore', 'iqr')
-        threshold: Threshold for outlier detection
-
-    Returns:
-        DataFrame with outlier flags
-    """
+    df: pd.DataFrame, columns: Optional[List[str]] = None, method: str = "iqr"
+) -> Dict[str, Any]:
+    """Detect outliers in DataFrame columns."""
     if columns is None:
         columns = df.select_dtypes(include=[np.number]).columns.tolist()
 
-    outlier_df = df.copy()
+    outliers = {}
 
     for col in columns:
-        if col not in df.columns:
-            continue
-
-        col_data = df[col].dropna()
-        if len(col_data) == 0:
-                continue
-
-        outlier_mask = pd.Series(False, index=df.index)
-
-        if method == "zscore":
-            z_scores = np.abs((col_data - col_data.mean()) / col_data.std())
-            outlier_indices = z_scores > threshold
-            outlier_mask.loc[col_data[outlier_indices].index] = True
-
-        elif method == "iqr":
-            Q1 = col_data.quantile(0.25)
-            Q3 = col_data.quantile(0.75)
+        if col in df.columns and df[col].dtype in ["int64", "float64"]:
+            Q1 = df[col].quantile(0.25)
+            Q3 = df[col].quantile(0.75)
             IQR = Q3 - Q1
             lower_bound = Q1 - 1.5 * IQR
             upper_bound = Q3 + 1.5 * IQR
 
-            outlier_indices = (col_data < lower_bound) | (col_data > upper_bound)
-            outlier_mask.loc[col_data[outlier_indices].index] = True
+            outlier_mask = (df[col] < lower_bound) | (df[col] > upper_bound)
+            outlier_count = outlier_mask.sum()
+            outlier_percentage = (outlier_count / len(df)) * 100
 
-        outlier_df[f"{col}_outlier"] = outlier_mask
+            outliers[col] = {
+                "count": outlier_count,
+                "percentage": outlier_percentage,
+                "indices": df[outlier_mask].index.tolist(),
+                "values": df[outlier_mask][col].tolist(),
+            }
 
-    return outlier_df
+    return outliers
+
+
+def get_correlation_strength(corr_value: float) -> str:
+    """Get correlation strength description based on correlation value."""
+    abs_corr = abs(corr_value)
+
+    if abs_corr >= 0.8:
+        return "Çok Güçlü"
+    elif abs_corr >= 0.6:
+        return "Güçlü"
+    elif abs_corr >= 0.4:
+        return "Orta"
+    elif abs_corr >= 0.2:
+        return "Zayıf"
+    else:
+        return "Çok Zayıf"
+
+
+def make_json_serializable(obj: Any) -> Any:
+    """Convert numpy/pandas objects to JSON serializable format."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, pd.Series):
+        return obj.tolist()
+    elif isinstance(obj, pd.DataFrame):
+        return obj.to_dict("records")
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif pd.isna(obj):
+        return None
+    else:
+        return obj
 
 
 def get_all_utils() -> Dict[str, Any]:
@@ -307,28 +181,48 @@ def get_all_utils() -> Dict[str, Any]:
     utils = {}
 
     # Performance utilities
-    utils.update(get_performance_utils())
+    try:
+        from .performance import get_performance_utils
+
+        utils.update(get_performance_utils())
+    except ImportError:
+        utils["performance"] = {"error": "Module not available"}
 
     # Big data utilities
-    utils.update(get_big_data_utils())
+    try:
+        from .big_data import get_big_data_utils
+
+        utils.update(get_big_data_utils())
+    except ImportError:
+        utils["big_data"] = {"error": "Module not available"}
 
     # Cloud integration utilities
-    utils.update(get_cloud_utils())
+    try:
+        from .cloud_integration import get_cloud_utils
+
+        utils.update(get_cloud_utils())
+    except ImportError:
+        utils["big_data"] = {"error": "Module not available"}
 
     # Data validation utilities
-    utils.update(get_validation_utils())
+    try:
+        from .data_validation import get_validation_utils
+
+        utils.update(get_validation_utils())
+    except ImportError:
+        utils["data_validation"] = {"error": "Module not available"}
 
     return utils
 
 
-def get_utility_status() -> Dict[str, Dict[str, bool]]:
+def get_utility_status() -> Dict[str, Any]:
     """
     Get status of all utility modules.
 
     Returns:
         Dictionary with status information for each utility category
     """
-    status = {}
+    status: Dict[str, Any] = {}
 
     # Performance status
     try:
@@ -338,7 +232,6 @@ def get_utility_status() -> Dict[str, Dict[str, bool]]:
             get_parallel_processing_status,
             get_chunked_processing_status,
             get_memory_optimization_status,
-            get_jit_compilation_status,
         )
 
         status["performance"] = {
@@ -347,7 +240,6 @@ def get_utility_status() -> Dict[str, Dict[str, bool]]:
             "parallel_processing": get_parallel_processing_status(),
             "chunked_processing": get_chunked_processing_status(),
             "memory_optimization": get_memory_optimization_status(),
-            "jit_compilation": get_jit_compilation_status(),
         }
     except ImportError:
         status["performance"] = {"error": "Module not available"}
@@ -494,7 +386,7 @@ def check_dependencies() -> Dict[str, Dict[str, bool]]:
     Returns:
         Dictionary with dependency status
     """
-    dependencies = {}
+    dependencies: Dict[str, Dict[str, bool]] = {}
 
     # Core dependencies
     core_deps = ["pandas", "numpy", "matplotlib"]
@@ -622,10 +514,10 @@ def create_utility_report() -> str:
 
     # Utility status
     try:
-        status = get_utility_status()
+        util_status = get_utility_status()
         report.append(f"\n📊 Utility Status:")
 
-        for category, cat_status in status.items():
+        for category, cat_status in util_status.items():
             if "error" not in cat_status:
                 available_count = sum(
                     1 for v in cat_status.values() if isinstance(v, bool) and v

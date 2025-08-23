@@ -4,26 +4,24 @@ QuickInsights Core Analysis Module
 This module contains the main analysis functions for datasets.
 """
 
-import pandas as pd
-import numpy as np
 import os
-import matplotlib.pyplot as plt
-from typing import Dict
+from pathlib import Path
+from typing import Any, Dict, Union, Optional
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from .utils import detect_outliers, get_data_info
 from .visualizer import (
+    box_plots as viz_box_plots,
     correlation_matrix,
     distribution_plots,
-    summary_stats,
-    create_interactive_plots,
-    box_plots,
-)
-from .utils import (
-    get_data_info,
-    detect_outliers,
+    summary_stats as viz_summary_stats,
 )
 
 
-def validate_dataframe(df) -> bool:
+def validate_dataframe(df: Any) -> bool:
     """
     Check if DataFrame is valid.
 
@@ -43,11 +41,17 @@ def validate_dataframe(df) -> bool:
         If DataFrame is invalid
     """
     from .error_handling import ValidationUtils
+
     ValidationUtils.validate_dataframe(df)
     return True
 
 
-def analyze(df, show_plots=True, save_plots=False, output_dir="./quickinsights_output"):
+def analyze(
+    df: pd.DataFrame,
+    show_plots: bool = True,
+    save_plots: bool = False,
+    output_dir: str = "./quickinsights_output",
+) -> Dict[str, Any]:
     """
     Perform comprehensive analysis on dataset.
 
@@ -59,12 +63,12 @@ def analyze(df, show_plots=True, save_plots=False, output_dir="./quickinsights_o
         Show plots
     save_plots : bool, default False
         Save plots
-    output_dir : str, default "./quickinsights_output"
+    output_dir : str or Path, default "./quickinsights_output"
         Directory to save plots
 
     Returns
     -------
-    dict
+    Dict[str, Any]
         Analysis results
     """
     # DataFrame validation
@@ -81,7 +85,8 @@ def analyze(df, show_plots=True, save_plots=False, output_dir="./quickinsights_o
     # Dataset information
     print("\n📊 Dataset Information:")
     print(f"   📏 Size: {df.shape[0]} rows, {df.shape[1]} columns")
-    print(f"   💾 Memory usage: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB")
+    memory_mb = df.memory_usage(deep=True).sum() / 1024**2
+    print(f"   💾 Memory usage: {memory_mb:.2f} MB")
 
     # Data types
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -103,7 +108,7 @@ def analyze(df, show_plots=True, save_plots=False, output_dir="./quickinsights_o
     # Analysis sections
     print("\n🔢 Numeric Variable Analysis:")
     numeric_results = analyze_numeric(df)
-    
+
     print("\n📝 Categorical Variable Analysis:")
     categorical_results = analyze_categorical(df)
 
@@ -113,42 +118,50 @@ def analyze(df, show_plots=True, save_plots=False, output_dir="./quickinsights_o
             print("\n📈 Creating and saving visualizations...")
         else:
             print("\n📈 Creating visualizations...")
-        
+
         # Create visualizations
         try:
             if len(numeric_cols) > 0:
                 # Correlation matrix
-                correlation_matrix(df[numeric_cols], save_path=f"{output_dir}/correlation_matrix.png" if save_plots else None)
-                
+                correlation_matrix(
+                    df[numeric_cols], save_plots=save_plots, output_dir=output_dir
+                )
+
                 # Distribution plots
-                distribution_plots(df[numeric_cols], save_path=f"{output_dir}/distributions.png" if save_plots else None)
-                
+                distribution_plots(
+                    df[numeric_cols], save_plots=save_plots, output_dir=output_dir
+                )
+
                 # Box plots
-                box_plots(df[numeric_cols], save_path=f"{output_dir}/box_plots.png" if save_plots else None)
-            
+                viz_box_plots(
+                    df[numeric_cols], save_plot=save_plots, output_dir=output_dir
+                )
+
             if len(categorical_cols) > 0:
                 # Categorical analysis plots
                 for col in categorical_cols:
-                    if df[col].nunique() <= 20:  # Only plot if not too many unique values
-                        summary_stats(df, col, save_path=f"{output_dir}/{col}_summary.png" if save_plots else None)
-                        
+                    if (
+                        df[col].nunique() <= 20
+                    ):  # Only plot if not too many unique values
+                        viz_summary_stats(df)
+
         except Exception as e:
             print(f"⚠️  Visualization error: {e}")
 
     # Summary statistics
     print("\n📊 Summary Statistics:")
     summary_stats = {
-        'dataset_info': {
-            'rows': df.shape[0],
-            'columns': df.shape[1],
-            'memory_mb': df.memory_usage(deep=True).sum() / 1024**2,
-            'missing_values': missing_data.sum(),
-            'duplicate_rows': df.duplicated().sum()
+        "dataset_info": {
+            "rows": df.shape[0],
+            "columns": df.shape[1],
+            "memory_mb": df.memory_usage(deep=True).sum() / 1024**2,
+            "missing_values": missing_data.sum(),
+            "duplicate_rows": df.duplicated().sum(),
         },
-        'numeric_analysis': numeric_results,
-        'categorical_analysis': categorical_results
+        "numeric_analysis": numeric_results,
+        "categorical_analysis": categorical_results,
     }
-    
+
     print(f"   📏 Total rows: {summary_stats['dataset_info']['rows']}")
     print(f"   📊 Total columns: {summary_stats['dataset_info']['columns']}")
     print(f"   💾 Memory usage: {summary_stats['dataset_info']['memory_mb']:.2f} MB")
@@ -156,7 +169,7 @@ def analyze(df, show_plots=True, save_plots=False, output_dir="./quickinsights_o
     print(f"   🔄 Duplicate rows: {summary_stats['dataset_info']['duplicate_rows']}")
 
     print("\n✅ Analysis completed!")
-    
+
     return summary_stats
 
 
@@ -192,11 +205,11 @@ def analyze_numeric(
 
     # Filter only numeric columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    
+
     if len(numeric_cols) == 0:
         print("⚠️  No numeric variables found!")
         return {}
-    
+
     # Create a DataFrame with only numeric columns
     numeric_df = df[numeric_cols]
 
@@ -204,6 +217,8 @@ def analyze_numeric(
     print("-" * 50)
 
     # Statistical summary
+    from .visualizer import summary_stats
+
     summary = summary_stats(numeric_df)
 
     # Vectorized printing - process all columns at once
@@ -295,9 +310,9 @@ def analyze_categorical(
 
         print(f"\n📊 {col}:")
         print(f"   Number of unique values: {len(value_counts)}")
-        print(
-            f"   Most common value: '{value_counts.index[0]}' ({value_counts.iloc[0]} times)"
-        )
+        most_common = value_counts.index[0]
+        most_common_count = value_counts.iloc[0]
+        print(f"   Most common value: '{most_common}' ({most_common_count} times)")
 
         if missing > 0:
             print(f"   Missing values: {missing}")
@@ -315,7 +330,11 @@ def analyze_categorical(
     return results
 
 
-def summary_stats(df: pd.DataFrame) -> Dict[str, Dict[str, float]]:
+def summary_stats(
+    df: pd.DataFrame,
+    save_plots: bool = False,
+    output_dir: str = "./quickinsights_output",
+) -> Dict[str, Dict[str, float]]:
     """
     Calculate summary statistics for a DataFrame.
 
@@ -323,6 +342,10 @@ def summary_stats(df: pd.DataFrame) -> Dict[str, Dict[str, float]]:
     ----------
     df : pd.DataFrame
         Dataframe to analyze
+    save_plots : bool, default=False
+        Whether to save plots
+    output_dir : str, default="./quickinsights_output"
+        Directory to save plots
 
     Returns
     -------
@@ -350,7 +373,7 @@ def summary_stats(df: pd.DataFrame) -> Dict[str, Dict[str, float]]:
 
 def box_plots(
     df: pd.DataFrame,
-    save_plots: bool = False,
+    save_plot: bool = False,
     output_dir: str = "./quickinsights_output",
 ) -> None:
     """
@@ -360,7 +383,7 @@ def box_plots(
     ----------
     df : pd.DataFrame
         Dataframe containing only numeric variables
-    save_plots : bool, default=False
+    save_plot : bool, default=False
         Whether to save plots
     output_dir : str, default="./quickinsights_output"
         Directory to save plots
@@ -389,7 +412,7 @@ def box_plots(
 
     plt.tight_layout()
 
-    if save_plots:
+    if save_plot:
         output_dir = create_output_directory(output_dir)
         plt.savefig(f"{output_dir}/box_plots.png", dpi=300, bbox_inches="tight")
         print(f"💾 Box plots saved: {output_dir}/box_plots.png")
@@ -400,7 +423,7 @@ def box_plots(
 
 def create_interactive_plots(
     df: pd.DataFrame,
-    save_plots: bool = False,
+    save_html: bool = False,
     output_dir: str = "./quickinsights_output",
 ) -> None:
     """
@@ -410,10 +433,10 @@ def create_interactive_plots(
     ----------
     df : pd.DataFrame
         Dataframe containing only numeric variables
-    save_plots : bool, default=False
-        Whether to save plots
+    save_html : bool, default=False
+        Whether to save HTML files
     output_dir : str, default="./quickinsights_output"
-        Directory to save plots
+        Directory to save files
     """
     if df.empty:
         print("⚠️  No numeric variables found for interactive plots!")
@@ -428,14 +451,12 @@ def create_interactive_plots(
 
     try:
         import plotly.express as px
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
 
         # Scatter plot matrix
         if len(numeric_cols) > 1:
             fig = px.scatter_matrix(df[numeric_cols], title="Scatter Plot Matrix")
 
-            if save_plots:
+            if save_html:
                 output_dir = create_output_directory(output_dir)
                 fig.write_html(f"{output_dir}/scatter_matrix.html")
                 print(f"💾 Scatter matrix saved: {output_dir}/scatter_matrix.html")
@@ -446,7 +467,7 @@ def create_interactive_plots(
         for col in numeric_cols:
             fig = px.histogram(df, x=col, title=f"Histogram - {col}")
 
-            if save_plots:
+            if save_html:
                 output_dir = create_output_directory(output_dir)
                 fig.write_html(f"{output_dir}/histogram_{col}.html")
                 print(f"💾 Histogram saved: {output_dir}/histogram_{col}.html")
@@ -496,12 +517,12 @@ class LazyAnalyzer:
             Dataset to analyze
         """
         self.df = df
-        self._results = {}
-        self._data_info = None
-        self._numeric_analysis = None
-        self._categorical_analysis = None
-        self._correlation_matrix = None
-        self._outliers = None
+        self._results: Dict[str, Any] = {}
+        self._data_info: Optional[Dict[str, Any]] = None
+        self._numeric_analysis: Optional[Dict[str, Any]] = None
+        self._categorical_analysis: Optional[Dict[str, Any]] = None
+        self._correlation_matrix: Optional[pd.DataFrame] = None
+        self._outliers: Optional[Dict[str, Any]] = None
 
         # Determine column types without copying the dataframe
         self._numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -511,18 +532,17 @@ class LazyAnalyzer:
 
         print("🚀 LazyAnalyzer initialized!")
         print(f"   📊 Dataset size: {df.shape}")
-        print(
-            f"   💾 Memory usage: {df.memory_usage(deep=True).sum() / 1024 / 1024:.2f} MB"
-        )
+        memory_mb = df.memory_usage(deep=True).sum() / 1024 / 1024
+        print(f"   💾 Memory usage: {memory_mb:.2f} MB")
 
-    def get_data_info(self):
+    def get_data_info(self) -> Dict[str, Any]:
         """Get general dataset information (lazy)"""
         if self._data_info is None:
             print("🔍 Calculating dataset information...")
             self._data_info = get_data_info(self.df)
         return self._data_info
 
-    def get_numeric_analysis(self):
+    def get_numeric_analysis(self) -> Dict[str, Any]:
         """Get numeric analysis results (lazy)"""
         if self._numeric_analysis is None:
             print("🔢 Performing numeric analysis...")
@@ -534,7 +554,7 @@ class LazyAnalyzer:
                 self._numeric_analysis = {}
         return self._numeric_analysis
 
-    def get_categorical_analysis(self):
+    def get_categorical_analysis(self) -> Dict[str, Any]:
         """Get categorical analysis results (lazy)"""
         if self._categorical_analysis is None:
             print("🏷️  Performing categorical analysis...")
@@ -546,7 +566,7 @@ class LazyAnalyzer:
                 self._categorical_analysis = {}
         return self._categorical_analysis
 
-    def get_correlation_matrix(self):
+    def get_correlation_matrix(self) -> pd.DataFrame:
         """Get correlation matrix (lazy)"""
         if self._correlation_matrix is None:
             print("📊 Calculating correlation matrix...")
@@ -557,19 +577,21 @@ class LazyAnalyzer:
                 self._correlation_matrix = pd.DataFrame()
         return self._correlation_matrix
 
-    def get_outliers(self, method: str = "iqr", threshold: float = 1.5):
+    def get_outliers(
+        self, method: str = "iqr", threshold: float = 1.5
+    ) -> Dict[str, Any]:
         """Get outliers (lazy)"""
         if self._outliers is None:
             print("⚠️  Detecting outliers...")
             if len(self._numeric_cols) > 0:
                 self._outliers = detect_outliers(
-                    self.df[self._numeric_cols], method=method, threshold=threshold
+                    self.df[self._numeric_cols], method=method
                 )
             else:
                 self._outliers = {}
         return self._outliers
 
-    def compute(self):
+    def compute(self) -> Dict[str, Any]:
         """Perform all analyses and return results"""
         print("🚀 Performing all analyses...")
 
@@ -584,7 +606,7 @@ class LazyAnalyzer:
         print("✅ All analyses completed!")
         return results
 
-    def get_summary(self):
+    def get_summary(self) -> Dict[str, Any]:
         """Get a summary of all analyses"""
         print("📋 Performing all analyses for summary...")
 
@@ -600,14 +622,16 @@ class LazyAnalyzer:
 
     def show_plots(
         self, save_plots: bool = False, output_dir: str = "./quickinsights_output"
-    ):
+    ) -> None:
         """Display visualizations"""
         print("📈 Creating visualizations...")
 
         # Correlation matrix
         if len(self._numeric_cols) > 1:
             correlation_matrix(
-                self.df[self._numeric_cols], save_plot=save_plots, output_dir=output_dir
+                self.df[self._numeric_cols],
+                save_plots=save_plots,
+                output_dir=output_dir,
             )
 
         # Distribution plots
@@ -618,7 +642,7 @@ class LazyAnalyzer:
                 output_dir=output_dir,
             )
 
-    def get_cache_status(self):
+    def get_cache_status(self) -> Dict[str, bool]:
         """Show cache status"""
         status = {
             "data_info": self._data_info is not None,
@@ -636,7 +660,7 @@ class LazyAnalyzer:
 
         return status
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear cache"""
         self._results = {}
         self._data_info = None

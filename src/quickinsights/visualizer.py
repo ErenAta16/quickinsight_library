@@ -263,13 +263,13 @@ def _calculate_skewness(data: np.ndarray) -> float:
     if len(data) < 3:
         return 0.0
 
-    mean = np.mean(data)
-    std = np.std(data)
+    mean = float(np.mean(data))
+    std = float(np.std(data))
     if std == 0:
         return 0.0
 
     n = len(data)
-    skewness = (n / ((n - 1) * (n - 2))) * np.sum(((data - mean) / std) ** 3)
+    skewness = (n / ((n - 1) * (n - 2))) * float(np.sum(((data - mean) / std) ** 3))
     return skewness
 
 
@@ -278,14 +278,14 @@ def _calculate_kurtosis(data: np.ndarray) -> float:
     if len(data) < 4:
         return 0.0
 
-    mean = np.mean(data)
-    std = np.std(data)
+    mean = float(np.mean(data))
+    std = float(np.std(data))
     if std == 0:
         return 0.0
 
     n = len(data)
-    kurtosis = (n * (n + 1) / ((n - 1) * (n - 2) * (n - 3))) * np.sum(
-        ((data - mean) / std) ** 4
+    kurtosis = (n * (n + 1) / ((n - 1) * (n - 2) * (n - 3))) * float(
+        np.sum(((data - mean) / std) ** 4)
     ) - (3 * (n - 1) ** 2 / ((n - 2) * (n - 3)))
     return kurtosis
 
