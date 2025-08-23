@@ -64,8 +64,12 @@ def fairness_mini_audit(
             yp = y_pred[idx]
             denom_pos = max(1, int((yt == positive_label).sum()))
             denom_neg = max(1, int((yt != positive_label).sum()))
-            tpr = float(((yp == positive_label) & (yt == positive_label)).sum() / denom_pos)
-            fpr = float(((yp == positive_label) & (yt != positive_label)).sum() / denom_neg)
+            tpr = float(
+                ((yp == positive_label) & (yt == positive_label)).sum() / denom_pos
+            )
+            fpr = float(
+                ((yp == positive_label) & (yt != positive_label)).sum() / denom_neg
+            )
             metrics.update({"tpr": tpr, "fpr": fpr})
         per_group[g] = metrics
 
@@ -82,7 +86,9 @@ def fairness_mini_audit(
         "per_group": per_group,
         "demographic_parity_diff": dp_diff,
         "disparate_impact_ratio": di_ratio,
-        "di_below_threshold": (di_ratio < di_threshold) if not np.isnan(di_ratio) else False,
+        "di_below_threshold": (di_ratio < di_threshold)
+        if not np.isnan(di_ratio)
+        else False,
         "positive_label": positive_label,
     }
 
@@ -111,5 +117,3 @@ def _to_series(x: Union[pd.Series, np.ndarray], name: str) -> pd.Series:
         s.name = name
         return s
     return pd.Series(np.asarray(x), name=name)
-
-

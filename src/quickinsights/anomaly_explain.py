@@ -44,11 +44,13 @@ def anomaly_explain(
         for idx in anomalous:
             contribs = {cols[j]: float(abs(z[idx, j])) for j in range(len(cols))}
             top = sorted(contribs.items(), key=lambda kv: kv[1], reverse=True)[:top_k]
-            explanations.append({
-                "index": int(idx),
-                "contributors": [{"feature": k, "z": v} for k, v in top],
-                "score": float(scores[idx]),
-            })
+            explanations.append(
+                {
+                    "index": int(idx),
+                    "contributors": [{"feature": k, "z": v} for k, v in top],
+                    "score": float(scores[idx]),
+                }
+            )
         return {
             "method": method,
             "anomaly_indices": anomalous,
@@ -61,7 +63,13 @@ def anomaly_explain(
         from sklearn.ensemble import IsolationForest
     except Exception:
         # Fallback to zscore
-        return anomaly_explain(df, columns=columns, method="zscore", contamination=contamination, top_k=top_k)
+        return anomaly_explain(
+            df,
+            columns=columns,
+            method="zscore",
+            contamination=contamination,
+            top_k=top_k,
+        )
 
     rng = np.random.RandomState(42)
     iso = IsolationForest(contamination=contamination, random_state=rng)
@@ -79,11 +87,13 @@ def anomaly_explain(
     for idx in anomalous_idx.tolist():
         contribs = {cols[j]: float(deviations[idx, j]) for j in range(len(cols))}
         top = sorted(contribs.items(), key=lambda kv: kv[1], reverse=True)[:top_k]
-        explanations.append({
-            "index": int(idx),
-            "contributors": [{"feature": k, "deviation": v} for k, v in top],
-            "score": float(raw_scores[idx]),
-        })
+        explanations.append(
+            {
+                "index": int(idx),
+                "contributors": [{"feature": k, "deviation": v} for k, v in top],
+                "score": float(raw_scores[idx]),
+            }
+        )
 
     return {
         "method": method,
@@ -91,5 +101,3 @@ def anomaly_explain(
         "scores": [float(raw_scores[i]) for i in anomalous_idx.tolist()],
         "explanations": explanations,
     }
-
-

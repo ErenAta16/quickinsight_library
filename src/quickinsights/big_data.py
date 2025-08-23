@@ -372,11 +372,13 @@ def detect_engines() -> Dict[str, bool]:
     available = {"pandas": True, "polars": False, "duckdb": False}
     try:
         import polars as _pl  # noqa: F401
+
         available["polars"] = True
     except Exception:
         pass
     try:
         import duckdb as _dd  # noqa: F401
+
         available["duckdb"] = True
     except Exception:
         pass
@@ -407,7 +409,11 @@ def select_dataframe_engine(
         row_count_estimate = len(df)
 
     if prefer != "auto" and avail.get(prefer, False):
-        return {"engine": prefer, "reason": f"user_preference:{prefer}", "available": avail}
+        return {
+            "engine": prefer,
+            "reason": f"user_preference:{prefer}",
+            "available": avail,
+        }
 
     # Guess large if unknown
     is_large = bool(row_count_estimate and row_count_estimate > 1_000_000)
@@ -416,13 +422,27 @@ def select_dataframe_engine(
         if any(lower.endswith(ext) for ext in [".parquet", ".csv"]):
             if avail["duckdb"] and (is_large or lower.endswith(".parquet")):
                 reason.append("duckdb_for_parquet_or_large_csv")
-                return {"selected_engine": "duckdb", "reason": ",".join(reason), "available": avail}
-    
-    if avail["polars"] and (is_large or (row_count_estimate and row_count_estimate > 200_000)):
-        reason.append("polars_for_large_tabular")
-        return {"selected_engine": "polars", "reason": ",".join(reason), "available": avail}
+                return {
+                    "selected_engine": "duckdb",
+                    "reason": ",".join(reason),
+                    "available": avail,
+                }
 
-    return {"selected_engine": "pandas", "reason": "default_or_small", "available": avail}
+    if avail["polars"] and (
+        is_large or (row_count_estimate and row_count_estimate > 200_000)
+    ):
+        reason.append("polars_for_large_tabular")
+        return {
+            "selected_engine": "polars",
+            "reason": ",".join(reason),
+            "available": avail,
+        }
+
+    return {
+        "selected_engine": "pandas",
+        "reason": "default_or_small",
+        "available": avail,
+    }
 
 
 def read_table_auto(
@@ -436,12 +456,15 @@ def read_table_auto(
 
     Supports CSV/Parquet. Falls back to pandas if engines are unavailable.
     """
-    sel = select_dataframe_engine(file_path=file_path, row_count_estimate=row_count_estimate, prefer=prefer)
+    sel = select_dataframe_engine(
+        file_path=file_path, row_count_estimate=row_count_estimate, prefer=prefer
+    )
     engine = sel["selected_engine"]
 
     if engine == "duckdb":
         try:
             import duckdb
+
             if file_path.lower().endswith(".parquet"):
                 q = f"SELECT * FROM parquet_scan('{file_path}')"
                 return duckdb.sql(q).df()
@@ -454,6 +477,7 @@ def read_table_auto(
     if engine == "polars":
         try:
             import polars as pl
+
             if file_path.lower().endswith(".parquet"):
                 return pl.scan_parquet(file_path).collect().to_pandas()
             elif file_path.lower().endswith(".csv"):
@@ -463,5 +487,7 @@ def read_table_auto(
 
     # Fallback to pandas
     if file_path.lower().endswith(".parquet"):
-        return pd.read_parquet(file_path, **{k: v for k, v in kwargs.items() if k != "chunksize"})
+        return pd.read_parquet(
+            file_path, **{k: v for k, v in kwargs.items() if k != "chunksize"}
+        )
     return pd.read_csv(file_path, **kwargs)

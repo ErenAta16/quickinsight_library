@@ -84,17 +84,27 @@ def autofe_generate_features(
                 prod_col = _safe_name(a, "x", b)
                 work[prod_col] = sa * sb
                 added.append(prod_col)
-                definitions[prod_col] = {"type": "interaction", "op": "product", "cols": [a, b]}
+                definitions[prod_col] = {
+                    "type": "interaction",
+                    "op": "product",
+                    "cols": [a, b],
+                }
                 # ratio (avoid div-by-zero)
                 if (np.abs(sb) > 1e-12).any():
                     ratio_col = _safe_name(a, "div", b)
                     work[ratio_col] = sa / (sb.replace({0: np.nan}) + 1e-12)
                     added.append(ratio_col)
-                    definitions[ratio_col] = {"type": "interaction", "op": "ratio", "cols": [a, b]}
+                    definitions[ratio_col] = {
+                        "type": "interaction",
+                        "op": "ratio",
+                        "cols": [a, b],
+                    }
 
     # Datetime features
     if datetime_features:
-        dt_cols = [c for c in work.columns if pd.api.types.is_datetime64_any_dtype(work[c])]
+        dt_cols = [
+            c for c in work.columns if pd.api.types.is_datetime64_any_dtype(work[c])
+        ]
         for col in dt_cols:
             base = work[col]
             for comp, getter in [
@@ -143,7 +153,9 @@ def autofe_generate_features(
                     work.drop(columns=[col], inplace=True, errors="ignore")
                     dropped.append(col)
                     added.remove(col)
-            insights.append(f"Leakage guard removed {len(dropped)} features similar to target")
+            insights.append(
+                f"Leakage guard removed {len(dropped)} features similar to target"
+            )
 
     result: Dict[str, Any] = {
         "features": work,
@@ -193,8 +205,12 @@ def leakage_guard_check(
         s = df[col].astype(float)
         same_mask = (s.round(6) == y.round(6)) | ((s - y).abs() < 1e-6)
         if same_mask.mean() >= threshold:
-            flagged.append({"column": col, "reason": "near-duplicate-of-target", "match_ratio": float(same_mask.mean())})
+            flagged.append(
+                {
+                    "column": col,
+                    "reason": "near-duplicate-of-target",
+                    "match_ratio": float(same_mask.mean()),
+                }
+            )
 
     return {"flagged": flagged}
-
-

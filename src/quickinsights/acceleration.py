@@ -12,6 +12,7 @@ import numpy as np
 
 try:
     import cupy as cp  # type: ignore
+
     _CUPY_IMPORTED = True
 except Exception:
     cp = None  # type: ignore
@@ -136,9 +137,12 @@ def gpu_corrcoef(array: Union[np.ndarray, "cp.ndarray"], prefer_gpu: bool = True
         return (Xn.T @ Xn) / (Xn.shape[0] - 1)
 
 
-def memmap_array(path: str, dtype: str, shape: Tuple[int, ...], mode: str = "w+") -> np.memmap:
+def memmap_array(
+    path: str, dtype: str, shape: Tuple[int, ...], mode: str = "w+"
+) -> np.memmap:
     """Create or open a memory-mapped array on disk."""
     import os
+
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     return np.memmap(path, dtype=dtype, mode=mode, shape=shape)
 
@@ -196,5 +200,3 @@ def benchmark_backend(
         "gpu_available": _CUPY_USABLE,
         "repeats": repeats,
     }
-
-

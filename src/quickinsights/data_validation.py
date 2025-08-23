@@ -449,6 +449,7 @@ def validate_date_format(series: pd.Series, date_format: str = "%Y-%m-%d") -> pd
 # Creative/Unique Capabilities
 # =====================================================================================
 
+
 def infer_constraints(
     df: pd.DataFrame,
     max_categories: int = 25,
@@ -512,12 +513,22 @@ def infer_constraints(
             if detect_patterns:
                 # Heuristics for common patterns
                 sample = series.dropna().astype(str).head(100)
-                looks_like_email = bool(sample.str.contains(r"@.+\.").mean() > 0.7) if len(sample) else False
-                looks_like_phone = bool(sample.str.fullmatch(r"\+?[0-9\-().\s]{7,}").mean() > 0.7) if len(sample) else False
+                looks_like_email = (
+                    bool(sample.str.contains(r"@.+\.").mean() > 0.7)
+                    if len(sample)
+                    else False
+                )
+                looks_like_phone = (
+                    bool(sample.str.fullmatch(r"\+?[0-9\-().\s]{7,}").mean() > 0.7)
+                    if len(sample)
+                    else False
+                )
                 looks_like_date = False
                 try:
                     if len(sample) > 0:
-                        ok_ratio = pd.to_datetime(sample, errors="coerce").notna().mean()
+                        ok_ratio = (
+                            pd.to_datetime(sample, errors="coerce").notna().mean()
+                        )
                         looks_like_date = bool(ok_ratio > 0.7)
                 except Exception:
                     pass
@@ -594,6 +605,7 @@ def drift_radar(
     # Optional stats
     try:
         from scipy import stats  # type: ignore
+
         SCIPY = True
     except Exception:
         SCIPY = False
@@ -677,7 +689,9 @@ def drift_radar(
     def _categorical_task(col: str):
         base_counts = base_df[col].value_counts(dropna=True).head(top_k_categories)
         curr_counts = current_df[col].value_counts(dropna=True).head(top_k_categories)
-        all_keys = sorted(set(base_counts.index.astype(str)).union(set(curr_counts.index.astype(str))))
+        all_keys = sorted(
+            set(base_counts.index.astype(str)).union(set(curr_counts.index.astype(str)))
+        )
         base_vec = np.array([base_counts.get(k, 0) for k in all_keys], dtype=float)
         curr_vec = np.array([curr_counts.get(k, 0) for k in all_keys], dtype=float)
         if base_vec.sum() == 0 or curr_vec.sum() == 0:
@@ -686,8 +700,16 @@ def drift_radar(
         curr_p = curr_vec / curr_vec.sum()
         psi = _psi(base_p, curr_p)
         jsd = _jsd(base_p, curr_p)
-        unseen = [k for k in all_keys if base_counts.get(k, 0) == 0 and curr_counts.get(k, 0) > 0]
-        vanished = [k for k in all_keys if base_counts.get(k, 0) > 0 and curr_counts.get(k, 0) == 0]
+        unseen = [
+            k
+            for k in all_keys
+            if base_counts.get(k, 0) == 0 and curr_counts.get(k, 0) > 0
+        ]
+        vanished = [
+            k
+            for k in all_keys
+            if base_counts.get(k, 0) > 0 and curr_counts.get(k, 0) == 0
+        ]
         return col, {
             "type": "categorical",
             "psi": float(psi),
@@ -710,7 +732,9 @@ def drift_radar(
                 results["columns"][col] = val
 
     # Overall risk heuristic
-    psis = [v.get("psi") for v in results["columns"].values() if v.get("psi") is not None]
+    psis = [
+        v.get("psi") for v in results["columns"].values() if v.get("psi") is not None
+    ]
     max_psi = max(psis) if psis else 0.0
     low_t, high_t = psi_thresholds
     if max_psi >= high_t:
@@ -728,16 +752,32 @@ def drift_radar(
         jsd_val = info.get("jsd") or 0.0
         ks_p = info.get("ks_pvalue")
         if psi_val >= high_t or jsd_val >= 0.25 or (ks_p is not None and ks_p < 0.01):
-            results["alerts"].append({
-                "level": "high", "column": col, "psi": float(psi_val), "jsd": float(jsd_val), "ks_pvalue": ks_p
-            })
+            results["alerts"].append(
+                {
+                    "level": "high",
+                    "column": col,
+                    "psi": float(psi_val),
+                    "jsd": float(jsd_val),
+                    "ks_pvalue": ks_p,
+                }
+            )
         elif psi_val >= low_t or jsd_val >= 0.15 or (ks_p is not None and ks_p < 0.05):
-            results["alerts"].append({
-                "level": "medium", "column": col, "psi": float(psi_val), "jsd": float(jsd_val), "ks_pvalue": ks_p
-            })
+            results["alerts"].append(
+                {
+                    "level": "medium",
+                    "column": col,
+                    "psi": float(psi_val),
+                    "jsd": float(jsd_val),
+                    "ks_pvalue": ks_p,
+                }
+            )
 
     # Optional segment analysis
-    if segment_by is not None and segment_by in base_df.columns and segment_by in current_df.columns:
+    if (
+        segment_by is not None
+        and segment_by in base_df.columns
+        and segment_by in current_df.columns
+    ):
         results["segments"] = {}
         base_vals = set(base_df[segment_by].dropna().astype(str))
         curr_vals = set(current_df[segment_by].dropna().astype(str))
@@ -746,16 +786,26 @@ def drift_radar(
             b_seg = base_df[base_df[segment_by].astype(str) == val]
             c_seg = current_df[current_df[segment_by].astype(str) == val]
             seg_res = drift_radar(
-                b_seg, c_seg, bins=bins, top_k_categories=top_k_categories, segment_by=None, psi_thresholds=psi_thresholds
+                b_seg,
+                c_seg,
+                bins=bins,
+                top_k_categories=top_k_categories,
+                segment_by=None,
+                psi_thresholds=psi_thresholds,
             )
             results["segments"][val] = {
                 "overall_risk": seg_res.get("overall_risk"),
-                "max_psi": max([v.get("psi") or 0 for v in seg_res.get("columns", {}).values()] or [0.0]),
+                "max_psi": max(
+                    [v.get("psi") or 0 for v in seg_res.get("columns", {}).values()]
+                    or [0.0]
+                ),
             }
             # Bubble up severe alerts
             for al in seg_res.get("alerts", []):
                 if al.get("level") == "high":
-                    results["alerts"].append({"level": "high", "segment_value": val, **al})
+                    results["alerts"].append(
+                        {"level": "high", "segment_value": val, **al}
+                    )
 
     results["timing_sec"] = round(time.time() - t0, 6)
     return results
@@ -782,41 +832,61 @@ def export_gx_expectations(
     for col, info in contract.items():
         # Nullable
         if not info.get("nullable", True):
-            expectations.append({
-                "expectation_type": "expect_column_values_to_not_be_null",
-                "kwargs": {"column": col},
-            })
+            expectations.append(
+                {
+                    "expectation_type": "expect_column_values_to_not_be_null",
+                    "kwargs": {"column": col},
+                }
+            )
         # Unique
         if info.get("unique", False):
-            expectations.append({
-                "expectation_type": "expect_column_values_to_be_unique",
-                "kwargs": {"column": col},
-            })
+            expectations.append(
+                {
+                    "expectation_type": "expect_column_values_to_be_unique",
+                    "kwargs": {"column": col},
+                }
+            )
         # Domain
         domain = info.get("domain")
         if domain:
-            expectations.append({
-                "expectation_type": "expect_column_values_to_be_in_set",
-                "kwargs": {"column": col, "value_set": domain},
-            })
+            expectations.append(
+                {
+                    "expectation_type": "expect_column_values_to_be_in_set",
+                    "kwargs": {"column": col, "value_set": domain},
+                }
+            )
         # Numeric ranges
         if info.get("min") is not None:
-            expectations.append({
-                "expectation_type": "expect_column_min_to_be_between",
-                "kwargs": {"column": col, "min_value": info.get("min"), "max_value": None},
-            })
+            expectations.append(
+                {
+                    "expectation_type": "expect_column_min_to_be_between",
+                    "kwargs": {
+                        "column": col,
+                        "min_value": info.get("min"),
+                        "max_value": None,
+                    },
+                }
+            )
         if info.get("max") is not None:
-            expectations.append({
-                "expectation_type": "expect_column_max_to_be_between",
-                "kwargs": {"column": col, "min_value": None, "max_value": info.get("max")},
-            })
+            expectations.append(
+                {
+                    "expectation_type": "expect_column_max_to_be_between",
+                    "kwargs": {
+                        "column": col,
+                        "min_value": None,
+                        "max_value": info.get("max"),
+                    },
+                }
+            )
         # Dtype as a soft expectation (GE type names vary across backends)
         dtype = info.get("dtype")
         if dtype:
-            expectations.append({
-                "expectation_type": "expect_column_values_to_be_of_type",
-                "kwargs": {"column": col, "type_": str(dtype)},
-            })
+            expectations.append(
+                {
+                    "expectation_type": "expect_column_values_to_be_of_type",
+                    "kwargs": {"column": col, "type_": str(dtype)},
+                }
+            )
 
     suite = {
         "expectation_suite_name": suite_name,
@@ -826,6 +896,7 @@ def export_gx_expectations(
 
     if save_path:
         import json, os
+
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         with open(save_path, "w", encoding="utf-8") as f:
             json.dump(suite, f, indent=2)

@@ -35,6 +35,10 @@ google-cloud-storage>=2.8.0
 # Profiling and monitoring
 psutil>=5.9.0
 
+# Security and validation
+bandit>=1.7.0
+safety>=2.3.0
+
 # Development dependencies
 pytest>=6.0
 pytest-cov>=2.0

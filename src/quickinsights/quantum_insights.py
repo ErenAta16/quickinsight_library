@@ -12,7 +12,9 @@ import numpy as np
 import pandas as pd
 
 
-def _to_numpy_2d(data: Union[pd.DataFrame, np.ndarray]) -> Tuple[np.ndarray, Optional[List[str]]]:
+def _to_numpy_2d(
+    data: Union[pd.DataFrame, np.ndarray]
+) -> Tuple[np.ndarray, Optional[List[str]]]:
     if isinstance(data, pd.DataFrame):
         return data.to_numpy(copy=False), list(data.columns)
     if isinstance(data, np.ndarray):
@@ -47,7 +49,7 @@ def quantum_superposition_sample(
     proj_dim = max(2, min(64, Xc.shape[1]))
     R = rng.normal(size=(Xc.shape[1], proj_dim)) / np.sqrt(proj_dim)
     Z = Xc @ R
-    energy = np.sum(Z ** 2, axis=1)
+    energy = np.sum(Z**2, axis=1)
     energy = np.maximum(energy, 1e-12)
     probs = energy / np.sum(energy)
 
@@ -55,7 +57,9 @@ def quantum_superposition_sample(
     idx = rng.choice(n_rows, size=n_take, replace=False, p=probs)
     subset = X[idx]
     df_subset = (
-        pd.DataFrame(subset, columns=columns) if columns is not None else pd.DataFrame(subset)
+        pd.DataFrame(subset, columns=columns)
+        if columns is not None
+        else pd.DataFrame(subset)
     )
 
     return {
@@ -130,7 +134,11 @@ def quantum_correlation_map(
         block_corrs.append(c)
 
     C = np.median(np.stack(block_corrs, axis=0), axis=0)
-    corr_df = pd.DataFrame(C, columns=columns, index=columns) if columns is not None else pd.DataFrame(C)
+    corr_df = (
+        pd.DataFrame(C, columns=columns, index=columns)
+        if columns is not None
+        else pd.DataFrame(C)
+    )
     return {
         "correlation": corr_df,
         "method": "median_of_means",
@@ -156,8 +164,9 @@ def quantum_anneal_optimize(
     # Input validation
     if estimator is None:
         return {"error": "Estimator cannot be None"}
-    
+
     from sklearn.model_selection import cross_val_score
+
     rng = np.random.default_rng(random_state)
 
     # Helpers
@@ -214,5 +223,3 @@ def quantum_anneal_optimize(
         "start_params": current,
         "iterations": int(max_iter),
     }
-
-

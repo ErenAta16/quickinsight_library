@@ -15,18 +15,19 @@ from pathlib import Path
 
 warnings.filterwarnings("ignore")
 
+
 class DashboardGenerator:
     """
     Interaktif dashboard oluşturucu
-    
+
     Veri analizi sonuçlarını web-based dashboard'a dönüştürür.
     Stakeholder'larla paylaşım için HTML/JSON formatında çıktı verir.
     """
-    
+
     def __init__(self, title: str = "QuickInsights Dashboard"):
         """
         Dashboard oluşturucu başlatıcısı
-        
+
         Parameters
         ----------
         title : str, default="QuickInsights Dashboard"
@@ -35,214 +36,242 @@ class DashboardGenerator:
         self.title = title
         self.sections = []
         self.metadata = {
-            'created_at': datetime.now().isoformat(),
-            'generator': 'QuickInsights',
-            'version': '0.2.0'
+            "created_at": datetime.now().isoformat(),
+            "generator": "QuickInsights",
+            "version": "0.2.0",
         }
-        
-    def add_dataset_overview(self, df: pd.DataFrame) -> 'DashboardGenerator':
+
+    def add_dataset_overview(self, df: pd.DataFrame) -> "DashboardGenerator":
         """Veri seti genel bakış bölümü ekler"""
-        
+
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        categorical_cols = df.select_dtypes(
+            include=["object", "category"]
+        ).columns.tolist()
         missing_data = df.isnull().sum()
-        
+
         overview = {
-            'type': 'dataset_overview',
-            'title': '📊 Veri Seti Genel Bakış',
-            'data': {
-                'shape': {
-                    'rows': len(df),
-                    'columns': len(df.columns)
+            "type": "dataset_overview",
+            "title": "📊 Veri Seti Genel Bakış",
+            "data": {
+                "shape": {"rows": len(df), "columns": len(df.columns)},
+                "memory_usage_mb": round(
+                    df.memory_usage(deep=True).sum() / 1024**2, 2
+                ),
+                "column_types": {
+                    "numeric": len(numeric_cols),
+                    "categorical": len(categorical_cols),
+                    "other": len(df.columns)
+                    - len(numeric_cols)
+                    - len(categorical_cols),
                 },
-                'memory_usage_mb': round(df.memory_usage(deep=True).sum() / 1024**2, 2),
-                'column_types': {
-                    'numeric': len(numeric_cols),
-                    'categorical': len(categorical_cols),
-                    'other': len(df.columns) - len(numeric_cols) - len(categorical_cols)
+                "data_quality": {
+                    "total_missing": missing_data.sum(),
+                    "missing_percentage": round(
+                        (missing_data.sum() / max(1, df.size)) * 100, 2
+                    ),
+                    "duplicate_rows": df.duplicated().sum(),
+                    "duplicate_percentage": round(
+                        (df.duplicated().sum() / max(1, len(df))) * 100, 2
+                    ),
                 },
-                'data_quality': {
-                    'total_missing': missing_data.sum(),
-                    'missing_percentage': round((missing_data.sum() / max(1, df.size)) * 100, 2),
-                    'duplicate_rows': df.duplicated().sum(),
-                    'duplicate_percentage': round((df.duplicated().sum() / max(1, len(df))) * 100, 2)
+                "column_details": {
+                    "numeric_columns": numeric_cols[:10],  # Limit for display
+                    "categorical_columns": categorical_cols[:10],
                 },
-                'column_details': {
-                    'numeric_columns': numeric_cols[:10],  # Limit for display
-                    'categorical_columns': categorical_cols[:10]
-                }
-            }
+            },
         }
-        
+
         self.sections.append(overview)
         return self
-    
-    def add_summary_statistics(self, df: pd.DataFrame) -> 'DashboardGenerator':
+
+    def add_summary_statistics(self, df: pd.DataFrame) -> "DashboardGenerator":
         """Özet istatistikler bölümü ekler"""
-        
+
         numeric_df = df.select_dtypes(include=[np.number])
-        
+
         if len(numeric_df.columns) > 0:
             stats = {
-                'type': 'summary_statistics',
-                'title': '📈 Özet İstatistikler',
-                'data': {
-                    'statistics': numeric_df.describe().round(3).to_dict(),
-                    'correlation_summary': self._get_correlation_summary(numeric_df),
-                    'distribution_insights': self._get_distribution_insights(numeric_df)
-                }
+                "type": "summary_statistics",
+                "title": "📈 Özet İstatistikler",
+                "data": {
+                    "statistics": numeric_df.describe().round(3).to_dict(),
+                    "correlation_summary": self._get_correlation_summary(numeric_df),
+                    "distribution_insights": self._get_distribution_insights(
+                        numeric_df
+                    ),
+                },
             }
             self.sections.append(stats)
-        
+
         return self
-    
-    def add_missing_data_analysis(self, df: pd.DataFrame) -> 'DashboardGenerator':
+
+    def add_missing_data_analysis(self, df: pd.DataFrame) -> "DashboardGenerator":
         """Eksik veri analizi bölümü ekler"""
-        
+
         missing_data = df.isnull().sum()
         missing_cols = missing_data[missing_data > 0]
-        
+
         if len(missing_cols) > 0:
             missing_analysis = {
-                'type': 'missing_data_analysis',
-                'title': '❓ Eksik Veri Analizi',
-                'data': {
-                    'missing_by_column': missing_cols.to_dict(),
-                    'missing_percentage_by_column': ((missing_cols / len(df)) * 100).round(2).to_dict(),
-                    'missing_patterns': self._analyze_missing_patterns(df),
-                    'recommendations': self._get_missing_data_recommendations(missing_cols, len(df))
-                }
+                "type": "missing_data_analysis",
+                "title": "❓ Eksik Veri Analizi",
+                "data": {
+                    "missing_by_column": missing_cols.to_dict(),
+                    "missing_percentage_by_column": ((missing_cols / len(df)) * 100)
+                    .round(2)
+                    .to_dict(),
+                    "missing_patterns": self._analyze_missing_patterns(df),
+                    "recommendations": self._get_missing_data_recommendations(
+                        missing_cols, len(df)
+                    ),
+                },
             }
             self.sections.append(missing_analysis)
-        
+
         return self
-    
-    def add_categorical_analysis(self, df: pd.DataFrame) -> 'DashboardGenerator':
+
+    def add_categorical_analysis(self, df: pd.DataFrame) -> "DashboardGenerator":
         """Kategorik değişken analizi bölümü ekler"""
-        
-        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
-        
+
+        categorical_cols = df.select_dtypes(
+            include=["object", "category"]
+        ).columns.tolist()
+
         if len(categorical_cols) > 0:
             categorical_data = {}
-            
+
             for col in categorical_cols[:5]:  # Limit to first 5 columns
                 value_counts = df[col].value_counts()
                 categorical_data[col] = {
-                    'unique_count': df[col].nunique(),
-                    'unique_ratio': round(df[col].nunique() / len(df), 3),
-                    'top_values': value_counts.head(10).to_dict(),
-                    'missing_count': df[col].isnull().sum()
+                    "unique_count": df[col].nunique(),
+                    "unique_ratio": round(df[col].nunique() / len(df), 3),
+                    "top_values": value_counts.head(10).to_dict(),
+                    "missing_count": df[col].isnull().sum(),
                 }
-            
+
             categorical_analysis = {
-                'type': 'categorical_analysis',
-                'title': '🏷️ Kategorik Değişken Analizi',
-                'data': categorical_data
+                "type": "categorical_analysis",
+                "title": "🏷️ Kategorik Değişken Analizi",
+                "data": categorical_data,
             }
-            
+
             self.sections.append(categorical_analysis)
-        
+
         return self
-    
-    def add_insights_section(self, insights: List[str]) -> 'DashboardGenerator':
+
+    def add_insights_section(self, insights: List[str]) -> "DashboardGenerator":
         """Otomatik insight'lar bölümü ekler"""
-        
+
         insights_section = {
-            'type': 'insights',
-            'title': '🔍 Otomatik Bulgular',
-            'data': {
-                'insights': insights[:10],  # Top 10 insights
-                'insight_count': len(insights)
-            }
+            "type": "insights",
+            "title": "🔍 Otomatik Bulgular",
+            "data": {
+                "insights": insights[:10],  # Top 10 insights
+                "insight_count": len(insights),
+            },
         }
-        
+
         self.sections.append(insights_section)
         return self
-    
-    def add_recommendations_section(self, recommendations: List[str]) -> 'DashboardGenerator':
+
+    def add_recommendations_section(
+        self, recommendations: List[str]
+    ) -> "DashboardGenerator":
         """Öneriler bölümü ekler"""
-        
+
         recommendations_section = {
-            'type': 'recommendations',
-            'title': '💡 Öneriler',
-            'data': {
-                'recommendations': recommendations[:8],  # Top 8 recommendations
-                'recommendation_count': len(recommendations)
-            }
+            "type": "recommendations",
+            "title": "💡 Öneriler",
+            "data": {
+                "recommendations": recommendations[:8],  # Top 8 recommendations
+                "recommendation_count": len(recommendations),
+            },
         }
-        
+
         self.sections.append(recommendations_section)
         return self
-    
-    def add_data_quality_score(self, quality_score: float, quality_details: Dict[str, Any]) -> 'DashboardGenerator':
+
+    def add_data_quality_score(
+        self, quality_score: float, quality_details: Dict[str, Any]
+    ) -> "DashboardGenerator":
         """Veri kalitesi skoru bölümü ekler"""
-        
+
         quality_section = {
-            'type': 'data_quality',
-            'title': '🏆 Veri Kalitesi Skoru',
-            'data': {
+            "type": "data_quality",
+            "title": "🏆 Veri Kalitesi Skoru",
+            "data": {
                 # Backward/forward compatible keys
-                'overall_score': round(quality_score, 1),
-                'quality_score': round(quality_score, 1),
-                'quality_level': self._get_quality_level(quality_score),
-                'quality_breakdown': quality_details,
-                'quality_details': quality_details,
-                'improvement_areas': self._identify_improvement_areas(quality_details)
-            }
+                "overall_score": round(quality_score, 1),
+                "quality_score": round(quality_score, 1),
+                "quality_level": self._get_quality_level(quality_score),
+                "quality_breakdown": quality_details,
+                "quality_details": quality_details,
+                "improvement_areas": self._identify_improvement_areas(quality_details),
+            },
         }
-        
+
         self.sections.append(quality_section)
         return self
-    
+
     def _get_correlation_summary(self, numeric_df: pd.DataFrame) -> Dict[str, Any]:
         """Korelasyon özetini çıkarır"""
         if len(numeric_df.columns) < 2:
-            return {'message': 'Korelasyon analizi için en az 2 sayısal sütun gerekli'}
-        
+            return {"message": "Korelasyon analizi için en az 2 sayısal sütun gerekli"}
+
         corr_matrix = numeric_df.corr()
-        
+
         # Find high correlations
         high_correlations = []
         for i in range(len(corr_matrix.columns)):
-            for j in range(i+1, len(corr_matrix.columns)):
+            for j in range(i + 1, len(corr_matrix.columns)):
                 corr_val = corr_matrix.iloc[i, j]
                 if abs(corr_val) > 0.7:
-                    high_correlations.append({
-                        'var1': corr_matrix.columns[i],
-                        'var2': corr_matrix.columns[j],
-                        'correlation': round(corr_val, 3)
-                    })
-        
+                    high_correlations.append(
+                        {
+                            "var1": corr_matrix.columns[i],
+                            "var2": corr_matrix.columns[j],
+                            "correlation": round(corr_val, 3),
+                        }
+                    )
+
         return {
-            'high_correlations': high_correlations[:5],  # Top 5
-            'correlation_matrix_shape': corr_matrix.shape,
-            'average_correlation': round(corr_matrix.values[np.triu_indices_from(corr_matrix.values, k=1)].mean(), 3)
+            "high_correlations": high_correlations[:5],  # Top 5
+            "correlation_matrix_shape": corr_matrix.shape,
+            "average_correlation": round(
+                corr_matrix.values[
+                    np.triu_indices_from(corr_matrix.values, k=1)
+                ].mean(),
+                3,
+            ),
         }
-    
+
     def _get_distribution_insights(self, numeric_df: pd.DataFrame) -> Dict[str, Any]:
         """Dağılım insight'larını çıkarır"""
         insights = {}
-        
+
         for col in numeric_df.columns[:5]:  # First 5 columns
             series = numeric_df[col].dropna()
             if len(series) > 0:
                 skewness = series.skew()
                 kurtosis = series.kurtosis()
-                
+
                 insights[col] = {
-                    'skewness': round(skewness, 3),
-                    'kurtosis': round(kurtosis, 3),
-                    'distribution_type': self._classify_distribution(skewness, kurtosis),
-                    'outlier_count': self._count_outliers(series),
-                    'range': {
-                        'min': round(series.min(), 3),
-                        'max': round(series.max(), 3),
-                        'span': round(series.max() - series.min(), 3)
-                    }
+                    "skewness": round(skewness, 3),
+                    "kurtosis": round(kurtosis, 3),
+                    "distribution_type": self._classify_distribution(
+                        skewness, kurtosis
+                    ),
+                    "outlier_count": self._count_outliers(series),
+                    "range": {
+                        "min": round(series.min(), 3),
+                        "max": round(series.max(), 3),
+                        "span": round(series.max() - series.min(), 3),
+                    },
                 }
-        
+
         return insights
-    
+
     def _classify_distribution(self, skewness: float, kurtosis: float) -> str:
         """Dağılım tipini sınıflandırır"""
         if abs(skewness) < 0.5:
@@ -256,67 +285,79 @@ class DashboardGenerator:
             return "Sola çarpık"
         else:
             return "Hafif çarpık"
-    
+
     def _count_outliers(self, series: pd.Series) -> int:
         """IQR yöntemi ile outlier sayısını hesaplar"""
         Q1 = series.quantile(0.25)
         Q3 = series.quantile(0.75)
         IQR = Q3 - Q1
-        outliers = series[(series < Q1 - 1.5*IQR) | (series > Q3 + 1.5*IQR)]
+        outliers = series[(series < Q1 - 1.5 * IQR) | (series > Q3 + 1.5 * IQR)]
         return len(outliers)
-    
+
     def _analyze_missing_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Eksik veri pattern'lerini analiz eder"""
         missing_matrix = df.isnull()
-        
+
         # Complete cases
         complete_cases = (~missing_matrix.any(axis=1)).sum()
         complete_percentage = (complete_cases / len(df)) * 100
-        
+
         # Columns with no missing data
-        complete_columns = missing_matrix.sum()[missing_matrix.sum() == 0].index.tolist()
-        
+        complete_columns = missing_matrix.sum()[
+            missing_matrix.sum() == 0
+        ].index.tolist()
+
         return {
-            'complete_cases': complete_cases,
-            'complete_cases_percentage': round(complete_percentage, 2),
-            'complete_columns': complete_columns[:10],  # Limit display
-            'missing_combinations': self._get_missing_combinations(missing_matrix)
+            "complete_cases": complete_cases,
+            "complete_cases_percentage": round(complete_percentage, 2),
+            "complete_columns": complete_columns[:10],  # Limit display
+            "missing_combinations": self._get_missing_combinations(missing_matrix),
         }
-    
+
     def _get_missing_combinations(self, missing_matrix: pd.DataFrame) -> List[Dict]:
         """Eksik veri kombinasyonlarını bulur"""
         # Convert boolean to string for grouping
         missing_patterns = missing_matrix.astype(str)
         pattern_counts = missing_patterns.value_counts()
-        
+
         # Return top 5 patterns
         top_patterns = []
         for pattern, count in pattern_counts.head(5).items():
             pattern_dict = dict(zip(missing_matrix.columns, pattern))
-            top_patterns.append({
-                'pattern': pattern_dict,
-                'count': count,
-                'percentage': round((count / len(missing_matrix)) * 100, 2)
-            })
-        
+            top_patterns.append(
+                {
+                    "pattern": pattern_dict,
+                    "count": count,
+                    "percentage": round((count / len(missing_matrix)) * 100, 2),
+                }
+            )
+
         return top_patterns
-    
-    def _get_missing_data_recommendations(self, missing_cols: pd.Series, total_rows: int) -> List[str]:
+
+    def _get_missing_data_recommendations(
+        self, missing_cols: pd.Series, total_rows: int
+    ) -> List[str]:
         """Eksik veri önerilerini oluşturur"""
         recommendations = []
-        
+
         for col, missing_count in missing_cols.items():
             missing_pct = (missing_count / total_rows) * 100
-            
+
             if missing_pct > 50:
-                recommendations.append(f"🔴 '{col}' sütununda %{missing_pct:.1f} eksik veri - silmeyi düşünün")
+                recommendations.append(
+                    f"🔴 '{col}' sütununda %{missing_pct:.1f} eksik veri - silmeyi düşünün"
+                )
             elif missing_pct > 20:
-                recommendations.append(f"🟡 '{col}' sütununda %{missing_pct:.1f} eksik veri - domain expertise ile doldurun")
+                recommendations.append(
+                    f"🟡 '{col}' sütununda %{missing_pct:.1f} eksik veri - domain expertise ile doldurun"
+                )
             elif missing_pct > 5:
-                recommendations.append(f"🟢 '{col}' sütununda %{missing_pct:.1f} eksik veri - istatistiksel yöntemle doldurun")
-        
+                recommendations.append(
+                    f"🟢 '{col}' sütununda %{missing_pct:.1f} eksik veri - istatistiksel yöntemle doldurun"
+                )
+
         return recommendations[:5]  # Top 5
-    
+
     def _get_quality_level(self, score: float) -> str:
         """Kalite seviyesini belirler"""
         if score >= 90:
@@ -329,87 +370,95 @@ class DashboardGenerator:
             return "Zayıf ⭐⭐"
         else:
             return "Kritik ⭐"
-    
+
     def _identify_improvement_areas(self, quality_details: Dict[str, Any]) -> List[str]:
         """İyileştirme alanlarını belirler"""
         areas = []
-        
-        if 'missing_data_reduction_pct' in quality_details:
-            if quality_details['missing_data_reduction_pct'] < 0:  # Missing data increased
+
+        if "missing_data_reduction_pct" in quality_details:
+            if (
+                quality_details["missing_data_reduction_pct"] < 0
+            ):  # Missing data increased
                 areas.append("Eksik veri yönetimi")
-        
-        if 'duplicate_reduction_pct' in quality_details:
-            if quality_details['duplicate_reduction_pct'] < 5:  # Low duplicate reduction
+
+        if "duplicate_reduction_pct" in quality_details:
+            if (
+                quality_details["duplicate_reduction_pct"] < 5
+            ):  # Low duplicate reduction
                 areas.append("Kopya veri temizleme")
-        
-        if 'memory_reduction_pct' in quality_details:
-            if quality_details['memory_reduction_pct'] < 10:  # Low memory optimization
+
+        if "memory_reduction_pct" in quality_details:
+            if quality_details["memory_reduction_pct"] < 10:  # Low memory optimization
                 areas.append("Veri tipi optimizasyonu")
-        
+
         return areas[:3]  # Top 3
-    
+
     def generate_html_dashboard(self, output_path: str = "dashboard.html") -> str:
         """HTML dashboard dosyası oluşturur"""
-        
+
         html_template = self._get_html_template()
-        
+
         # Convert sections to HTML
         sections_html = ""
         for section in self.sections:
             sections_html += self._section_to_html(section)
-        
+
         # Replace placeholders
         html_content = html_template.replace("{{TITLE}}", self.title)
         html_content = html_content.replace("{{SECTIONS}}", sections_html)
-        html_content = html_content.replace("{{METADATA}}", json.dumps(self.metadata, indent=2))
-        html_content = html_content.replace("{{TIMESTAMP}}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        
+        html_content = html_content.replace(
+            "{{METADATA}}", json.dumps(self.metadata, indent=2)
+        )
+        html_content = html_content.replace(
+            "{{TIMESTAMP}}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+
         # Write to file
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
-        
+
         print(f"✅ Dashboard oluşturuldu: {output_path}")
         return output_path
-    
+
     def generate_json_report(self, output_path: str = "dashboard_data.json") -> str:
         """JSON formatında rapor oluşturur"""
-        
+
         report_data = {
-            'title': self.title,
-            'metadata': self.metadata,
-            'sections': self.sections
+            "title": self.title,
+            "metadata": self.metadata,
+            "sections": self.sections,
         }
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
+
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2, ensure_ascii=False, default=str)
-        
+
         print(f"✅ JSON raporu oluşturuldu: {output_path}")
         return output_path
-    
+
     def _section_to_html(self, section: Dict[str, Any]) -> str:
         """Bölümü HTML'e dönüştürür"""
-        
-        section_type = section['type']
-        title = section['title']
-        data = section['data']
-        
-        if section_type == 'dataset_overview':
+
+        section_type = section["type"]
+        title = section["title"]
+        data = section["data"]
+
+        if section_type == "dataset_overview":
             return self._dataset_overview_to_html(title, data)
-        elif section_type == 'summary_statistics':
+        elif section_type == "summary_statistics":
             return self._summary_stats_to_html(title, data)
-        elif section_type == 'missing_data_analysis':
+        elif section_type == "missing_data_analysis":
             return self._missing_data_to_html(title, data)
-        elif section_type == 'categorical_analysis':
+        elif section_type == "categorical_analysis":
             return self._categorical_to_html(title, data)
-        elif section_type == 'insights':
+        elif section_type == "insights":
             return self._insights_to_html(title, data)
-        elif section_type == 'recommendations':
+        elif section_type == "recommendations":
             return self._recommendations_to_html(title, data)
-        elif section_type == 'data_quality':
+        elif section_type == "data_quality":
             return self._data_quality_to_html(title, data)
         else:
             return f"<div class='section'><h2>{title}</h2><p>Bilinmeyen section tipi: {section_type}</p></div>"
-    
+
     def _dataset_overview_to_html(self, title: str, data: Dict[str, Any]) -> str:
         """Dataset overview'ı HTML'e dönüştürür"""
         return f"""
@@ -439,13 +488,13 @@ class DashboardGenerator:
             </div>
         </div>
         """
-    
+
     def _insights_to_html(self, title: str, data: Dict[str, Any]) -> str:
         """Insights'ları HTML'e dönüştürür"""
         insights_html = ""
-        for insight in data['insights']:
+        for insight in data["insights"]:
             insights_html += f"<li>{insight}</li>"
-        
+
         return f"""
         <div class='section insights'>
             <h2>{title}</h2>
@@ -454,13 +503,13 @@ class DashboardGenerator:
             </ul>
         </div>
         """
-    
+
     def _recommendations_to_html(self, title: str, data: Dict[str, Any]) -> str:
         """Recommendations'ları HTML'e dönüştürür"""
         recs_html = ""
-        for rec in data['recommendations']:
+        for rec in data["recommendations"]:
             recs_html += f"<li>{rec}</li>"
-        
+
         return f"""
         <div class='section recommendations'>
             <h2>{title}</h2>
@@ -469,7 +518,7 @@ class DashboardGenerator:
             </ul>
         </div>
         """
-    
+
     def _data_quality_to_html(self, title: str, data: Dict[str, Any]) -> str:
         """Data quality'yi HTML'e dönüştürür"""
         return f"""
@@ -484,7 +533,7 @@ class DashboardGenerator:
             </div>
         </div>
         """
-    
+
     def _summary_stats_to_html(self, title: str, data: Dict[str, Any]) -> str:
         """Summary statistics'i HTML'e dönüştürür"""
         return f"""
@@ -493,7 +542,7 @@ class DashboardGenerator:
             <p>İstatistiksel özet verileri burada gösterilecek.</p>
         </div>
         """
-    
+
     def _missing_data_to_html(self, title: str, data: Dict[str, Any]) -> str:
         """Missing data analysis'i HTML'e dönüştürür"""
         return f"""
@@ -502,7 +551,7 @@ class DashboardGenerator:
             <p>Eksik veri analizi burada gösterilecek.</p>
         </div>
         """
-    
+
     def _categorical_to_html(self, title: str, data: Dict[str, Any]) -> str:
         """Categorical analysis'i HTML'e dönüştürür"""
         return f"""
@@ -511,7 +560,7 @@ class DashboardGenerator:
             <p>Kategorik değişken analizi burada gösterilecek.</p>
         </div>
         """
-    
+
     def _get_html_template(self) -> str:
         """HTML template'ini döndürür"""
         return """
@@ -694,13 +743,16 @@ class DashboardGenerator:
 </html>
         """
 
-def create_dashboard(df: pd.DataFrame, 
-                    title: str = "Veri Analizi Dashboard",
-                    output_html: str = "dashboard.html",
-                    output_json: str = "dashboard_data.json") -> Dict[str, str]:
+
+def create_dashboard(
+    df: pd.DataFrame,
+    title: str = "Veri Analizi Dashboard",
+    output_html: str = "dashboard.html",
+    output_json: str = "dashboard_data.json",
+) -> Dict[str, str]:
     """
     Veri seti için otomatik dashboard oluşturur
-    
+
     Parameters
     ----------
     df : pd.DataFrame
@@ -711,56 +763,57 @@ def create_dashboard(df: pd.DataFrame,
         HTML çıktı dosyası
     output_json : str, default="dashboard_data.json"
         JSON çıktı dosyası
-        
+
     Returns
     -------
     Dict[str, str]
         Oluşturulan dosya yolları
-        
+
     Examples
     --------
     >>> import quickinsights as qi
     >>> files = qi.create_dashboard(df, title="Satış Analizi")
     >>> print(f"Dashboard: {files['html']}")
     """
-    
+
     print("📊 Dashboard oluşturuluyor...")
-    
+
     # Create dashboard generator
     dashboard = DashboardGenerator(title)
-    
+
     # Add sections
     dashboard.add_dataset_overview(df)
     dashboard.add_summary_statistics(df)
     dashboard.add_missing_data_analysis(df)
     dashboard.add_categorical_analysis(df)
-    
+
     # Quick insights for additional content
     try:
         from .quick_insights import quick_insight
+
         insight_result = quick_insight(df, include_viz=False)
-        
-        if 'auto_insights' in insight_result:
-            dashboard.add_insights_section(insight_result['auto_insights'])
-        
-        if 'recommendations' in insight_result:
-            dashboard.add_recommendations_section(insight_result['recommendations'])
-            
-        if 'data_quality' in insight_result:
-            quality_score = 100 - insight_result['data_quality']['overall_score']  # Convert to positive score
-            dashboard.add_data_quality_score(quality_score, insight_result['data_quality'])
-            
+
+        if "auto_insights" in insight_result:
+            dashboard.add_insights_section(insight_result["auto_insights"])
+
+        if "recommendations" in insight_result:
+            dashboard.add_recommendations_section(insight_result["recommendations"])
+
+        if "data_quality" in insight_result:
+            quality_score = (
+                100 - insight_result["data_quality"]["overall_score"]
+            )  # Convert to positive score
+            dashboard.add_data_quality_score(
+                quality_score, insight_result["data_quality"]
+            )
+
     except Exception as e:
         print(f"⚠️ Quick insights entegrasyonu başarısız: {e}")
-    
+
     # Generate outputs
     html_path = dashboard.generate_html_dashboard(output_html)
     json_path = dashboard.generate_json_report(output_json)
-    
+
     print("✅ Dashboard başarıyla oluşturuldu!")
-    
-    return {
-        'html': html_path,
-        'json': json_path,
-        'title': title
-    }
+
+    return {"html": html_path, "json": json_path, "title": title}

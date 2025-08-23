@@ -62,6 +62,7 @@ def volumetric_density_plot(
         if d > 3:
             # Reduce to 3D
             from sklearn.decomposition import PCA
+
             X = PCA(n_components=3, random_state=42).fit_transform(X)
         else:
             # Pad with zeros to reach 3D
@@ -129,5 +130,3 @@ def plotly_embed_3d(
         return {"success": True, "figure": fig}
     except Exception as e:
         return {"success": False, "error": str(e)}
-
-

@@ -33,11 +33,17 @@ def main(argv: Optional[list] = None) -> int:
     parser = argparse.ArgumentParser(description="QuickInsights Drift Radar CLI")
     parser.add_argument("--base", required=True, help="Path to baseline CSV/Parquet")
     parser.add_argument("--current", required=True, help="Path to current CSV/Parquet")
-    parser.add_argument("--segment-by", default=None, help="Optional column to segment by")
+    parser.add_argument(
+        "--segment-by", default=None, help="Optional column to segment by"
+    )
     parser.add_argument("--bins", type=int, default=10, help="Bins for numeric PSI")
     parser.add_argument("--topk", type=int, default=20, help="Top-K categories for PSI")
-    parser.add_argument("--low-th", type=float, default=0.25, help="PSI threshold for medium risk")
-    parser.add_argument("--high-th", type=float, default=0.5, help="PSI threshold for high risk")
+    parser.add_argument(
+        "--low-th", type=float, default=0.25, help="PSI threshold for medium risk"
+    )
+    parser.add_argument(
+        "--high-th", type=float, default=0.5, help="PSI threshold for high risk"
+    )
     parser.add_argument("--out", required=True, help="Output JSON report path")
 
     args = parser.parse_args(argv)
@@ -66,5 +72,3 @@ def main(argv: Optional[list] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

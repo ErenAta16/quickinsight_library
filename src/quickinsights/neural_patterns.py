@@ -11,7 +11,9 @@ import numpy as np
 import pandas as pd
 
 
-def _to_2d_numpy(data: Union[pd.DataFrame, np.ndarray]) -> Tuple[np.ndarray, Optional[List[str]]]:
+def _to_2d_numpy(
+    data: Union[pd.DataFrame, np.ndarray]
+) -> Tuple[np.ndarray, Optional[List[str]]]:
     if isinstance(data, pd.DataFrame):
         return data.to_numpy(copy=False), list(data.columns)
     if isinstance(data, np.ndarray):
@@ -59,7 +61,11 @@ def neural_pattern_mining(
     unique, counts = np.unique(labels, return_counts=True)
     cluster_counts = {int(k): int(v) for k, v in zip(unique, counts)}
 
-    centers_df = pd.DataFrame(centers, columns=columns) if columns is not None else pd.DataFrame(centers)
+    centers_df = (
+        pd.DataFrame(centers, columns=columns)
+        if columns is not None
+        else pd.DataFrame(centers)
+    )
 
     return {
         "pattern_centers": centers_df,
@@ -85,6 +91,7 @@ def autoencoder_anomaly_scores(
         return {"error": "Empty input"}
 
     from sklearn.preprocessing import StandardScaler
+
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
@@ -181,6 +188,7 @@ def sequence_signature_extract(
 
     # Dimensionality reduction
     from sklearn.decomposition import PCA
+
     pca = PCA(n_components=max(1, n_components), random_state=random_state)
     Z = pca.fit_transform(W)
 
@@ -195,8 +203,3 @@ def sequence_signature_extract(
         "explained_variance_ratio": pca.explained_variance_ratio_.tolist(),
         "n_windows": int(Z.shape[0]),
     }
-
-
-
-
-

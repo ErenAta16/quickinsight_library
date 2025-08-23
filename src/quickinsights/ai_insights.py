@@ -12,24 +12,28 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+
 # Lazy loading of ML libraries
 def _get_ml_libraries():
     """Get ML libraries with lazy loading."""
     from ._imports import get_sklearn_utils, get_scipy_utils
-    
+
     sklearn_utils = get_sklearn_utils()
     scipy_utils = get_scipy_utils()
-    
+
     return sklearn_utils, scipy_utils
+
 
 # Check availability without printing
 def _check_ml_availability():
     """Check ML library availability silently."""
     sklearn_utils, scipy_utils = _get_ml_libraries()
-    return sklearn_utils['available'], scipy_utils['available']
+    return sklearn_utils["available"], scipy_utils["available"]
+
 
 # Global availability flags
 SKLEARN_AVAILABLE, SCIPY_AVAILABLE = _check_ml_availability()
+
 
 class AIInsightEngine:
     """
@@ -50,8 +54,10 @@ class AIInsightEngine:
         """
         # Empty DataFrame check
         if df.empty:
-            raise ValueError("AIInsightEngine cannot be initialized with empty DataFrame")
-        
+            raise ValueError(
+                "AIInsightEngine cannot be initialized with empty DataFrame"
+            )
+
         self.df = df.copy()
         self.insights = {}
         self.patterns = {}
@@ -74,7 +80,7 @@ class AIInsightEngine:
         if len(self.numeric_cols) > 0 and SKLEARN_AVAILABLE:
             try:
                 sklearn_utils = _get_ml_libraries()[0]
-                StandardScaler = sklearn_utils['StandardScaler']
+                StandardScaler = sklearn_utils["StandardScaler"]
                 self.scaler = StandardScaler()
                 self.df_scaled = pd.DataFrame(
                     self.scaler.fit_transform(self.df[self.numeric_cols]),
@@ -85,7 +91,11 @@ class AIInsightEngine:
                 # Silently handle errors without printing
                 self.df_scaled = self.df[self.numeric_cols].copy()
         else:
-            self.df_scaled = self.df[self.numeric_cols].copy() if len(self.numeric_cols) > 0 else pd.DataFrame()
+            self.df_scaled = (
+                self.df[self.numeric_cols].copy()
+                if len(self.numeric_cols) > 0
+                else pd.DataFrame()
+            )
 
         # Encode categorical data
         self.label_encoders = {}
@@ -94,12 +104,14 @@ class AIInsightEngine:
         if SKLEARN_AVAILABLE:
             try:
                 sklearn_utils = _get_ml_libraries()[0]
-                LabelEncoder = sklearn_utils['LabelEncoder']
-                
+                LabelEncoder = sklearn_utils["LabelEncoder"]
+
                 for col in self.categorical_cols:
                     try:
                         le = LabelEncoder()
-                        self.df_encoded[col] = le.fit_transform(self.df[col].astype(str))
+                        self.df_encoded[col] = le.fit_transform(
+                            self.df[col].astype(str)
+                        )
                         self.label_encoders[col] = le
                     except Exception:
                         # Handle encoding errors silently
@@ -111,51 +123,51 @@ class AIInsightEngine:
     def discover_patterns(self, max_patterns: int = 10) -> Dict[str, Any]:
         """
         Discover patterns in the data using AI techniques
-        
+
         Parameters
         ----------
         max_patterns : int, default=10
             Maximum number of patterns to discover
-            
+
         Returns
         -------
         Dict[str, Any]
             Discovered patterns
         """
         if not SKLEARN_AVAILABLE:
-            return {'error': 'scikit-learn not available'}
-        
+            return {"error": "scikit-learn not available"}
+
         try:
             patterns = {}
-            
+
             # Linear correlations
             if len(self.numeric_cols) > 1:
                 correlations = self._discover_correlations()
                 if correlations:
-                    patterns['correlations'] = correlations[:max_patterns//2]
-            
+                    patterns["correlations"] = correlations[: max_patterns // 2]
+
             # Sequential patterns
             if len(self.datetime_cols) > 0:
                 sequential = self._discover_sequential_patterns()
                 if sequential:
-                    patterns['sequential'] = sequential
-            
+                    patterns["sequential"] = sequential
+
             # Categorical patterns
             if len(self.categorical_cols) > 0:
                 categorical = self._discover_categorical_patterns()
                 if categorical:
-                    patterns['categorical'] = categorical
-            
+                    patterns["categorical"] = categorical
+
             # Feature importance patterns
             if len(self.numeric_cols) > 1:
                 importance = self._discover_feature_importance()
                 if importance:
-                    patterns['feature_importance'] = importance
-            
+                    patterns["feature_importance"] = importance
+
             return patterns
-            
+
         except Exception as e:
-            return {'error': f'Pattern discovery failed: {str(e)}'}
+            return {"error": f"Pattern discovery failed: {str(e)}"}
 
     def _discover_clustering_patterns(self) -> Dict[str, Any]:
         """Clustering pattern'larını keşfeder"""
@@ -502,48 +514,50 @@ class AIInsightEngine:
     def detect_anomalies(self, method: str = "auto") -> Dict[str, Any]:
         """
         Detect anomalies in the data
-        
+
         Parameters
         ----------
         method : str, default="auto"
             Anomaly detection method
-            
+
         Returns
         -------
         Dict[str, Any]
             Anomaly detection results
         """
         if not SKLEARN_AVAILABLE:
-            return {'error': 'scikit-learn not available'}
-        
+            return {"error": "scikit-learn not available"}
+
         try:
             anomalies = {}
-            
+
             if method == "auto":
                 # Try Isolation Forest first
                 try:
                     sklearn_utils = _get_ml_libraries()[0]
-                    IsolationForest = sklearn_utils['IsolationForest']
-                    
+                    IsolationForest = sklearn_utils["IsolationForest"]
+
                     iso_forest = IsolationForest(contamination=0.1, random_state=42)
                     iso_forest.fit(self.df_scaled)
                     iso_scores = iso_forest.decision_function(self.df_scaled)
-                    
-                    anomalies['isolation_forest'] = {
-                        'scores': iso_scores.tolist(),
-                        'anomaly_indices': np.where(iso_scores < np.percentile(iso_scores, 10))[0].tolist()
+
+                    anomalies["isolation_forest"] = {
+                        "scores": iso_scores.tolist(),
+                        "anomaly_indices": np.where(
+                            iso_scores < np.percentile(iso_scores, 10)
+                        )[0].tolist(),
                     }
-                    anomalies['best_method'] = 'isolation_forest'
-                    
+                    anomalies["best_method"] = "isolation_forest"
+
                 except Exception:
                     # Fallback to statistical method
-                    anomalies['statistical'] = self._statistical_anomaly_detection()
-                    anomalies['best_method'] = 'statistical'
-            
+                    anomalies["statistical"] = self._statistical_anomaly_detection()
+                    anomalies["best_method"] = "statistical"
+
             return anomalies
-            
+
         except Exception as e:
-            return {'error': f'Anomaly detection failed: {str(e)}'}
+            return {"error": f"Anomaly detection failed: {str(e)}"}
 
     def _detect_anomalies_isolation_forest(
         self, contamination: float
@@ -637,77 +651,77 @@ class AIInsightEngine:
     def predict_trends(self, horizon: int = 5) -> Dict[str, Any]:
         """
         Predict future trends in the data
-        
+
         Parameters
         ----------
         horizon : int, default=5
             Prediction horizon
-            
+
         Returns
         -------
         Dict[str, Any]
             Trend predictions
         """
         if not SKLEARN_AVAILABLE:
-            return {'error': 'scikit-learn not available'}
-        
+            return {"error": "scikit-learn not available"}
+
         try:
             trends = {}
-            
+
             # Simple linear trend prediction
             for col in self.numeric_cols[:3]:  # First 3 numeric columns
                 try:
                     x = np.arange(len(self.df))
                     y = self.df[col].values
-                    
+
                     # Linear regression
                     sklearn_utils = _get_ml_libraries()[0]
-                    LinearRegression = sklearn_utils['LinearRegression']
-                    
+                    LinearRegression = sklearn_utils["LinearRegression"]
+
                     lr = LinearRegression()
                     lr.fit(x.reshape(-1, 1), y)
-                    
+
                     # Predict future values
                     future_x = np.arange(len(self.df), len(self.df) + horizon)
                     future_y = lr.predict(future_x.reshape(-1, 1))
-                    
+
                     trends[col] = {
-                        'slope': float(lr.coef_[0]),
-                        'intercept': float(lr.intercept_),
-                        'future_values': future_y.tolist(),
-                        'confidence': 0.8  # Simple confidence score
+                        "slope": float(lr.coef_[0]),
+                        "intercept": float(lr.intercept_),
+                        "future_values": future_y.tolist(),
+                        "confidence": 0.8,  # Simple confidence score
                     }
-                    
+
                 except Exception:
                     # If sklearn fails, use simple statistical trend
                     try:
                         x = np.arange(len(self.df))
                         y = self.df[col].values
-                        
+
                         # Simple linear trend using numpy
                         slope = np.polyfit(x, y, 1)[0]
                         intercept = np.polyfit(x, y, 1)[1]
-                        
+
                         # Predict future values
                         future_x = np.arange(len(self.df), len(self.df) + horizon)
                         future_y = slope * future_x + intercept
-                        
+
                         trends[col] = {
-                            'slope': float(slope),
-                            'intercept': float(intercept),
-                            'future_values': future_y.tolist(),
-                            'confidence': 0.6  # Lower confidence for simple method
+                            "slope": float(slope),
+                            "intercept": float(intercept),
+                            "future_values": future_y.tolist(),
+                            "confidence": 0.6,  # Lower confidence for simple method
                         }
                     except Exception:
                         continue
-            
+
             if trends:
-                trends['best_model'] = 'linear_regression'
-            
+                trends["best_model"] = "linear_regression"
+
             return trends
-            
+
         except Exception as e:
-            return {'error': f'Trend prediction failed: {str(e)}'}
+            return {"error": f"Trend prediction failed: {str(e)}"}
 
     def generate_insights_report(self) -> Dict[str, Any]:
         """
@@ -790,57 +804,61 @@ class AIInsightEngine:
     def _discover_correlations(self) -> List[Dict[str, Any]]:
         """Discover correlations between numeric features"""
         correlations = []
-        
+
         if len(self.numeric_cols) < 2:
             return correlations
-        
+
         try:
             corr_matrix = self.df[self.numeric_cols].corr()
-            
+
             for i in range(len(self.numeric_cols)):
-                for j in range(i+1, len(self.numeric_cols)):
+                for j in range(i + 1, len(self.numeric_cols)):
                     col1 = self.numeric_cols[i]
                     col2 = self.numeric_cols[j]
                     corr_value = corr_matrix.loc[col1, col2]
-                    
+
                     if abs(corr_value) > 0.7:
-                        correlations.append({
-                            'feature1': col1,
-                            'feature2': col2,
-                            'correlation': float(corr_value),
-                            'strength': 'strong' if abs(corr_value) > 0.8 else 'moderate'
-                        })
-            
+                        correlations.append(
+                            {
+                                "feature1": col1,
+                                "feature2": col2,
+                                "correlation": float(corr_value),
+                                "strength": "strong"
+                                if abs(corr_value) > 0.8
+                                else "moderate",
+                            }
+                        )
+
             # Sort by absolute correlation value
-            correlations.sort(key=lambda x: abs(x['correlation']), reverse=True)
-            
+            correlations.sort(key=lambda x: abs(x["correlation"]), reverse=True)
+
         except Exception:
             pass
-        
+
         return correlations
 
     def _discover_feature_importance(self) -> Dict[str, float]:
         """Discover feature importance using simple statistical methods"""
         importance = {}
-        
+
         try:
             for col in self.numeric_cols:
                 # Use variance as a simple importance measure
                 importance[col] = float(self.df[col].var())
-            
+
             # Normalize importance scores
             max_importance = max(importance.values()) if importance else 1
-            importance = {k: v/max_importance for k, v in importance.items()}
-            
+            importance = {k: v / max_importance for k, v in importance.items()}
+
         except Exception:
             pass
-        
+
         return importance
 
     def _statistical_anomaly_detection(self) -> Dict[str, Any]:
         """Simple statistical anomaly detection"""
         anomalies = {}
-        
+
         try:
             for col in self.numeric_cols:
                 values = self.df[col].dropna()
@@ -848,20 +866,25 @@ class AIInsightEngine:
                     Q1 = values.quantile(0.25)
                     Q3 = values.quantile(0.75)
                     IQR = Q3 - Q1
-                    
+
                     lower_bound = Q1 - 1.5 * IQR
                     upper_bound = Q3 + 1.5 * IQR
-                    
-                    outlier_indices = values[(values < lower_bound) | (values > upper_bound)].index
-                    
+
+                    outlier_indices = values[
+                        (values < lower_bound) | (values > upper_bound)
+                    ].index
+
                     anomalies[col] = {
-                        'outlier_count': len(outlier_indices),
-                        'outlier_indices': outlier_indices.tolist(),
-                        'bounds': {'lower': float(lower_bound), 'upper': float(upper_bound)}
+                        "outlier_count": len(outlier_indices),
+                        "outlier_indices": outlier_indices.tolist(),
+                        "bounds": {
+                            "lower": float(lower_bound),
+                            "upper": float(upper_bound),
+                        },
                     }
         except Exception:
             pass
-        
+
         return anomalies
 
 
