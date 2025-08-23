@@ -13,12 +13,7 @@ import numpy as np
 import pandas as pd
 
 from .utils import detect_outliers, get_data_info
-from .visualizer import (
-    box_plots as viz_box_plots,
-    correlation_matrix,
-    distribution_plots,
-    summary_stats as viz_summary_stats,
-)
+from .visualizer import correlation_matrix, distribution_plots
 
 
 def validate_dataframe(df: Any) -> bool:
@@ -54,123 +49,11 @@ def analyze(
 ) -> Dict[str, Any]:
     """
     Perform comprehensive analysis on dataset.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Dataset to analyze
-    show_plots : bool, default True
-        Show plots
-    save_plots : bool, default False
-        Save plots
-    output_dir : str or Path, default "./quickinsights_output"
-        Directory to save plots
-
-    Returns
-    -------
-    Dict[str, Any]
-        Analysis results
+    
+    This function now delegates to the modular analysis module.
     """
-    # DataFrame validation
-    validate_dataframe(df)
-
-    print("🔍 QuickInsights - Dataset Analysis Starting...")
-    print("=" * 60)
-
-    # Create output directory
-    if save_plots:
-        os.makedirs(output_dir, exist_ok=True)
-        print(f"📁 Output directory: {output_dir}")
-
-    # Dataset information
-    print("\n📊 Dataset Information:")
-    print(f"   📏 Size: {df.shape[0]} rows, {df.shape[1]} columns")
-    memory_mb = df.memory_usage(deep=True).sum() / 1024**2
-    print(f"   💾 Memory usage: {memory_mb:.2f} MB")
-
-    # Data types
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    categorical_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
-
-    print(f"   🔢 Numeric variables: {len(numeric_cols)}")
-    print(f"   📝 Categorical variables: {len(categorical_cols)}")
-
-    # Missing value analysis
-    missing_data = df.isnull().sum()
-    if missing_data.sum() > 0:
-        print("\n⚠️  Missing Values:")
-        for col, missing_count in missing_data[missing_data > 0].items():
-            percentage = (missing_count / len(df)) * 100
-            print(f"   {col}: {missing_count} ({percentage:.1f}%)")
-    else:
-        print("\n✅ No missing values found!")
-
-    # Analysis sections
-    print("\n🔢 Numeric Variable Analysis:")
-    numeric_results = analyze_numeric(df)
-
-    print("\n📝 Categorical Variable Analysis:")
-    categorical_results = analyze_categorical(df)
-
-    # Visualization
-    if show_plots or save_plots:
-        if save_plots:
-            print("\n📈 Creating and saving visualizations...")
-        else:
-            print("\n📈 Creating visualizations...")
-
-        # Create visualizations
-        try:
-            if len(numeric_cols) > 0:
-                # Correlation matrix
-                correlation_matrix(
-                    df[numeric_cols], save_plots=save_plots, output_dir=output_dir
-                )
-
-                # Distribution plots
-                distribution_plots(
-                    df[numeric_cols], save_plots=save_plots, output_dir=output_dir
-                )
-
-                # Box plots
-                viz_box_plots(
-                    df[numeric_cols], save_plot=save_plots, output_dir=output_dir
-                )
-
-            if len(categorical_cols) > 0:
-                # Categorical analysis plots
-                for col in categorical_cols:
-                    if (
-                        df[col].nunique() <= 20
-                    ):  # Only plot if not too many unique values
-                        viz_summary_stats(df)
-
-        except Exception as e:
-            print(f"⚠️  Visualization error: {e}")
-
-    # Summary statistics
-    print("\n📊 Summary Statistics:")
-    summary_stats = {
-        "dataset_info": {
-            "rows": df.shape[0],
-            "columns": df.shape[1],
-            "memory_mb": df.memory_usage(deep=True).sum() / 1024**2,
-            "missing_values": missing_data.sum(),
-            "duplicate_rows": df.duplicated().sum(),
-        },
-        "numeric_analysis": numeric_results,
-        "categorical_analysis": categorical_results,
-    }
-
-    print(f"   📏 Total rows: {summary_stats['dataset_info']['rows']}")
-    print(f"   📊 Total columns: {summary_stats['dataset_info']['columns']}")
-    print(f"   💾 Memory usage: {summary_stats['dataset_info']['memory_mb']:.2f} MB")
-    print(f"   ❓ Missing values: {summary_stats['dataset_info']['missing_values']}")
-    print(f"   🔄 Duplicate rows: {summary_stats['dataset_info']['duplicate_rows']}")
-
-    print("\n✅ Analysis completed!")
-
-    return summary_stats
+    from .analysis import analyze as analyze_data
+    return analyze_data(df, show_plots, save_plots, output_dir)
 
 
 def analyze_numeric(
@@ -179,86 +62,9 @@ def analyze_numeric(
     save_plots: bool = False,
     output_dir: str = "./quickinsights_output",
 ) -> dict:
-    """
-    Perform detailed analysis on numeric variables.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataframe containing only numeric variables
-    show_plots : bool, default=True
-        Whether to show plots
-    save_plots : bool, default=False
-        Whether to save plots
-    output_dir : str, default="./quickinsights_output"
-        Directory to save plots
-
-    Returns
-    -------
-    dict
-        Numeric analysis results
-    """
-
-    if df.empty:
-        print("⚠️  No numeric variables found!")
-        return {}
-
-    # Filter only numeric columns
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-
-    if len(numeric_cols) == 0:
-        print("⚠️  No numeric variables found!")
-        return {}
-
-    # Create a DataFrame with only numeric columns
-    numeric_df = df[numeric_cols]
-
-    print(f"\n🔢 NUMERIC VARIABLE ANALYSIS ({len(numeric_cols)} variables)")
-    print("-" * 50)
-
-    # Statistical summary
-    from .visualizer import summary_stats
-
-    summary = summary_stats(numeric_df)
-
-    # Vectorized printing - process all columns at once
-    col_names = numeric_cols
-    means = [summary[col]["mean"] for col in col_names]
-    medians = [summary[col]["median"] for col in col_names]
-    stds = [summary[col]["std"] for col in col_names]
-    mins = [summary[col]["min"] for col in col_names]
-    maxs = [summary[col]["max"] for col in col_names]
-    q1s = [summary[col]["q1"] for col in col_names]
-    q3s = [summary[col]["q3"] for col in col_names]
-
-    # Print results for each column
-    for i, col in enumerate(col_names):
-        print(f"\n📊 {col}:")
-        print(f"   Mean: {means[i]:.4f}")
-        print(f"   Median: {medians[i]:.4f}")
-        print(f"   Standard deviation: {stds[i]:.4f}")
-        print(f"   Minimum: {mins[i]:.4f}")
-        print(f"   Maximum: {maxs[i]:.4f}")
-        print(f"   Quartiles: Q1={q1s[i]:.4f}, Q3={q3s[i]:.4f}")
-
-    # Visualizations
-    if show_plots:
-        distribution_plots(numeric_df, save_plots=save_plots, output_dir=output_dir)
-
-    # Return results
-    results = {}
-    for col in col_names:
-        results[col] = {
-            "mean": means[col_names.index(col)],
-            "median": medians[col_names.index(col)],
-            "std": stds[col_names.index(col)],
-            "min": mins[col_names.index(col)],
-            "max": maxs[col_names.index(col)],
-            "q1": q1s[col_names.index(col)],
-            "q3": q3s[col_names.index(col)],
-        }
-
-    return results
+    """Perform detailed analysis on numeric variables."""
+    from .analysis import analyze_numeric as analyze_numeric_data
+    return analyze_numeric_data(df, show_plots, save_plots, output_dir)
 
 
 def analyze_categorical(
@@ -267,67 +73,9 @@ def analyze_categorical(
     save_plots: bool = False,
     output_dir: str = "./quickinsights_output",
 ) -> dict:
-    """
-    Perform detailed analysis on categorical variables.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataframe containing only categorical variables
-    show_plots : bool, default=True
-        Whether to show plots
-    save_plots : bool, default=False
-        Whether to save plots
-    output_dir : str, default="./quickinsights_output"
-        Directory to save plots
-
-    Returns
-    -------
-    dict
-        Categorical analysis results
-    """
-
-    if df.empty:
-        print("⚠️  No categorical variables found!")
-        return {}
-
-    print(f"\n🏷️  CATEGORICAL VARIABLE ANALYSIS ({len(df.columns)} variables)")
-    print("-" * 50)
-
-    # Vectorized operations - process all columns at once
-    col_names = df.columns.tolist()
-
-    # Calculate value_counts for all columns at once
-    value_counts_list = [df[col].value_counts() for col in col_names]
-    missing_counts = df.isnull().sum()
-
-    results = {}
-
-    # Batch processing - process all columns at once
-    for i, col in enumerate(col_names):
-        value_counts = value_counts_list[i]
-        missing = missing_counts[col]
-
-        print(f"\n📊 {col}:")
-        print(f"   Number of unique values: {len(value_counts)}")
-        most_common = value_counts.index[0]
-        most_common_count = value_counts.iloc[0]
-        print(f"   Most common value: '{most_common}' ({most_common_count} times)")
-
-        if missing > 0:
-            print(f"   Missing values: {missing}")
-
-        print(f"   First 5 values: {list(value_counts.head().index)}")
-
-        results[col] = {
-            "unique_count": len(value_counts),
-            "most_common": value_counts.index[0],
-            "most_common_count": value_counts.iloc[0],
-            "missing_count": missing,
-            "value_counts": value_counts,
-        }
-
-    return results
+    """Perform detailed analysis on categorical variables."""
+    from .analysis import analyze_categorical as analyze_categorical_data
+    return analyze_categorical_data(df, show_plots, save_plots, output_dir)
 
 
 def summary_stats(
@@ -659,6 +407,7 @@ class LazyAnalyzer:
             print(f"   {status_icon} {key}: {cache_text}")
 
         return status
+
 
     def clear_cache(self) -> None:
         """Clear cache"""
