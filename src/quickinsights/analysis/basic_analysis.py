@@ -143,7 +143,14 @@ def analyze_numeric(
     """Perform detailed analysis on numeric variables."""
     results = {}
     
-    for col in df.columns:
+    # Only analyze numeric columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    
+    if not numeric_cols:
+        print("   🔢 No numeric variables found")
+        return results
+    
+    for col in numeric_cols:
         col_data = df[col].dropna()
         
         if len(col_data) == 0:
@@ -162,9 +169,9 @@ def analyze_numeric(
         }
         
         # Outlier detection
-        outliers = detect_outliers(col_data)
-        stats["outliers_count"] = len(outliers)
-        stats["outliers_percentage"] = (len(outliers) / len(col_data)) * 100
+        outliers = detect_outliers(df, columns=[col])
+        stats["outliers_count"] = outliers.get(col, {}).get("count", 0)
+        stats["outliers_percentage"] = outliers.get(col, {}).get("percentage", 0)
         
         results[col] = stats
         
@@ -187,7 +194,14 @@ def analyze_categorical(
     """Perform detailed analysis on categorical variables."""
     results = {}
     
-    for col in df.columns:
+    # Only analyze categorical columns
+    categorical_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+    
+    if not categorical_cols:
+        print("   📝 No categorical variables found")
+        return results
+    
+    for col in categorical_cols:
         col_data = df[col].dropna()
         
         if len(col_data) == 0:
