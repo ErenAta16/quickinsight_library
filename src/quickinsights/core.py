@@ -410,6 +410,7 @@ class LazyAnalyzer:
 
 
     def clear_cache(self) -> None:
+    
         """Clear cache"""
         self._results = {}
         self._data_info = None
