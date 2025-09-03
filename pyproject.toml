@@ -5,16 +5,34 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "quickinsights"
 version = "0.3.0"
-description = "Enterprise-grade data analysis and insights library"
+description = "Enterprise-grade data analysis and insights library with plugin architecture, async operations, and advanced configuration management"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "QuickInsights Team", email = "team@quickinsights.com"}
+    {name = "QuickInsights Team", email = "erena6466@gmail.com"}
+]
+maintainers = [
+    {name = "QuickInsights Team", email = "erena6466@gmail.com"}
+]
+keywords = [
+    "data-analysis",
+    "machine-learning",
+    "visualization",
+    "automl",
+    "async",
+    "plugins",
+    "enterprise",
+    "pandas",
+    "numpy",
+    "scikit-learn"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Manufacturing",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -23,7 +41,16 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+    "Framework :: AsyncIO",
+    "Environment :: Console",
+    "Environment :: Web Environment",
 ]
 requires-python = ">=3.9"
 dependencies = [
@@ -38,6 +65,15 @@ dependencies = [
     "pyyaml>=6.0",
     "toml>=0.10.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/erena6466/quickinsights"
+Documentation = "https://github.com/erena6466/quickinsights/blob/main/docs/API_REFERENCE.md"
+Repository = "https://github.com/erena6466/quickinsights.git"
+"Bug Tracker" = "https://github.com/erena6466/quickinsights/issues"
+"Source Code" = "https://github.com/erena6466/quickinsights"
+"Download" = "https://github.com/erena6466/quickinsights/releases"
+"Changelog" = "https://github.com/erena6466/quickinsights/blob/main/RELEASE_NOTES_v0.3.0.md"
 
 [project.optional-dependencies]
 dev = [
@@ -57,6 +93,29 @@ security = [
 performance = [
     "numba>=0.57.0",
     "dask>=2023.0.0",
+]
+gpu = [
+    "torch>=1.9.0",
+    "cupy>=10.0.0",
+]
+cloud = [
+    "boto3>=1.26.0",
+    "azure-storage-blob>=12.14.0",
+    "google-cloud-storage>=2.7.0",
+]
+fast = [
+    "numba>=0.57.0",
+    "dask>=2023.0.0",
+    "joblib>=1.2.0",
+]
+ml = [
+    "torch>=1.9.0",
+    "xgboost>=1.7.0",
+    "lightgbm>=3.3.0",
+    "catboost>=1.1.0",
+]
+all = [
+    "quickinsights[dev,security,performance,gpu,cloud,fast,ml]"
 ]
 
 [tool.black]
