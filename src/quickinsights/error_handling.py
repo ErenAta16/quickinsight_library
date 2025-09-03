@@ -317,25 +317,77 @@ class ErrorHandler:
     def _count_error_types(self) -> Dict[str, int]:
         """Hata türlerini sayar"""
         error_types = {}
-        for error in self.error_history:
-            error_type = error["error_type"]
+        for error_info in self.error_history:
+            error_type = error_info["error_type"]
             error_types[error_type] = error_types.get(error_type, 0) + 1
         return error_types
 
     def _get_timestamp(self) -> str:
-        """Zaman damgası oluşturur"""
+        """Hata zamanını alır"""
         from datetime import datetime
-
         return datetime.now().isoformat()
 
     def clear_history(self) -> None:
         """Hata geçmişini temizler"""
-        self.error_history.clear()
+        self.error_history = []
         self.error_count = 0
+        logger.info("Error history cleared")
 
 
 # Global error handler instance
-global_error_handler = ErrorHandler()
+_global_error_handler = ErrorHandler()
+
+
+def handle_operation(operation: callable, *args, **kwargs) -> Any:
+    """
+    Decorator function to handle operations with standardized error handling.
+    
+    Parameters
+    ----------
+    operation : callable
+        The operation to execute
+    *args
+        Positional arguments for the operation
+    **kwargs
+        Keyword arguments for the operation
+        
+    Returns
+    -------
+    Any
+        The result of the operation
+        
+    Raises
+    ------
+    QuickInsightsError
+        If the operation fails
+    """
+    try:
+        return operation(*args, **kwargs)
+    except QuickInsightsError:
+        # Re-raise QuickInsights errors as-is
+        raise
+    except Exception as e:
+        # Convert other exceptions to QuickInsightsError
+        error_msg = f"Operation '{operation.__name__}' failed: {str(e)}"
+        context = {
+            "operation": operation.__name__,
+            "args": str(args)[:100],  # Limit length
+            "kwargs": str(kwargs)[:100]
+        }
+        
+        user_message = _global_error_handler.handle_error(e, context)
+        raise QuickInsightsError(error_msg, "OPERATION_ERROR", context) from e
+
+
+def get_error_handler() -> ErrorHandler:
+    """Get the global error handler instance."""
+    return _global_error_handler
+
+
+def reset_error_handler() -> None:
+    """Reset the global error handler."""
+    global _global_error_handler
+    _global_error_handler = ErrorHandler()
 
 
 def safe_execute(func, *args, error_context: Optional[Dict[str, Any]] = None, **kwargs):
@@ -362,7 +414,7 @@ def safe_execute(func, *args, error_context: Optional[Dict[str, Any]] = None, **
         result = func(*args, **kwargs)
         return True, result, None
     except Exception as e:
-        error_message = global_error_handler.handle_error(e, error_context)
+        error_message = _global_error_handler.handle_error(e, error_context)
         return False, None, error_message
 
 
