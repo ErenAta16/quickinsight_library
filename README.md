@@ -422,14 +422,14 @@ best_model = intelligent_model_selection(X, y)
 
 Comprehensive documentation is available:
 
-- **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation
-- **[Creative Features](docs/CREATIVE_FEATURES.md)** - Advanced visualization guide
-- **[Quick Start Guide](examples/quick_start_example.py)** - Beginner examples
-- **[Advanced Examples](examples/advanced_analysis_example.py)** - Expert usage patterns
+- API Reference - see `docs/API_REFERENCE.md`
+- Creative Features - see `docs/CREATIVE_FEATURES.md`
+- Quick Start Guide - see `examples/quick_start_example.py`
+- Advanced Examples - see `examples/advanced_analysis_example.py`
 
 ## Contributing
 
-We welcome contributions from the community. Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
+We welcome contributions from the community. Please see our Contributing Guide at `CONTRIBUTING.md` for details on how to get started.
 
 ### Development Setup
 ```bash
@@ -437,7 +437,7 @@ git clone https://github.com/erena6466/quickinsights.git
 cd quickinsights
 pip install -e .
 
-# Run tests (100% success rate guaranteed)
+# Run tests (if available)
 python -m pytest tests/ -v
 
 # Check code quality
@@ -473,31 +473,18 @@ Current development status:
 ## Support
 
 ### Getting Help
-- **Documentation**: Start with the [API Reference](docs/API_REFERENCE.md)
-- **Examples**: Check the [examples](examples/) folder for usage patterns
-- **Issues**: Report bugs and request features on [GitHub Issues](https://github.com/erena6466/quickinsights/issues)
+- Documentation: Start with the API Reference in `docs/API_REFERENCE.md`
+- Examples: Check the `examples/` folder for usage patterns
+- Issues: Report bugs and request features via GitHub Issues (if enabled)
 
 ### Community
-- **Discussions**: Join conversations on [GitHub Discussions](https://github.com/erena6466/quickinsights/discussions)
-- **Email**: Contact the team at [erena6466@gmail.com](mailto:erena6466@gmail.com)
-- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
+- Discussions: Join conversations via GitHub Discussions (if enabled)
+- Email: Contact the team at erena6466@gmail.com
+- Contributing: See `CONTRIBUTING.md` for contribution guidelines
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Citation
-
-If you use QuickInsights in your research or work, please cite:
-
-```bibtex
-@software{quickinsights2024,
-  title={QuickInsights: A Comprehensive Python Library for Data Analysis},
-  author={QuickInsights Team},
-  year={2024},
-  url={https://github.com/ErenAta16/quickinsights}
-}
-```
+This project is licensed under the MIT License - see the `LICENSE` file for details.
 
 ## Quick Test
 
@@ -555,7 +542,3 @@ print("Enterprise Features: Ready")
 ---
 
 **QuickInsights** - Empowering data scientists with comprehensive analytics tools.
-
-[![GitHub stars](https://img.shields.io/github/stars/erena6466/quickinsights?style=social)](https://github.com/erena6466/quickinsights)
-[![GitHub forks](https://img.shields.io/github/forks/erena6466/quickinsights?style=social)](https://github.com/erena6466/quickinsights)
-[![GitHub issues](https://img.shields.io/github/issues/erena6466/quickinsights)](https://github.com/erena6466/quickinsights)
